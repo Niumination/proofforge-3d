@@ -15,8 +15,8 @@ Pelacakan tugas lintas agen (**Arena.ai**, **Hermes Agent @ LightVela VPS**, **O
 | :--- | :--- | :--- | :--- | :--- |
 | `PF-001` | Finalisasi dokumen visi, kontrak agen, dan arsitektur teknis | Arena.ai | `README.md`, `AGENTS.md`, `ARCHITECTURE.md` | `[x]` |
 | `PF-002` | Susun brainstorming skenario 3D, scaffold blueprint, workflow multi-agen, dan naskah pitch | Arena.ai | `docs/*.md`, `BACKLOG.md`, `HANDOFF.md` | `[x]` |
-| `PF-003` | Buat repo GitHub baru `Niumination/proofforge-3d` & push dokumentasi Phase 0 | Human + Hermes | GitHub repo live & terindeks | `[ ]` |
-| `PF-004` | Setup workspace terisolasi di VPS LightVela & uji sinkronisasi Hermes Agent | Hermes (LightVela) | Clone repo + konfirmasi `HANDOFF.md` | `[ ]` |
+| `PF-003` | Buat repo GitHub baru `Niumination/proofforge-3d` & push dokumentasi Phase 0 | Human + Hermes | GitHub repo live & terindeks | `[x]` Repo live @ `1c07519`, 11 file terverifikasi via clone VPS |
+| `PF-004` | Setup workspace terisolasi di VPS LightVela & uji sinkronisasi Hermes Agent | Hermes (LightVela) | Clone repo + konfirmasi `HANDOFF.md` | `[x]` Clone `~/projects/proofforge-3d` (isolasi dari OMB/9Router), toolchain diverifikasi — bukti di `HANDOFF.md` |
 
 ---
 

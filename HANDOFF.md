@@ -6,12 +6,12 @@ File ini **WAJIB** dibaca di awal sesi dan diperbarui di akhir sesi oleh setiap 
 
 ## Status Terkini
 
-* **Active Phase:** Phase 0 — Dokumentasi Awal & Persiapan Repo GitHub
-* **Last Updated:** 2026-11-17
-* **Last Actor:** Arena.ai
-* **Repo Target:** `https://github.com/Niumination/proofforge-3d` *(belum di-push; baru selesai disusun di workspace)*
-* **Active Task:** `PF-003` (Membuat repo GitHub baru & push seluruh dokumentasi Phase 0)
-* **Code Lock Status:** **LOCKED (Documentation Only)** — Jangan membuat file kode aplikasi (`.py`, `.ts`, `.tsx`) sebelum user memberi sinyal masuk ke Phase 1.
+* **Active Phase:** Phase 0 selesai — siap transisi ke Phase 1
+* **Last Updated:** 2026-11-17 (Hermes Agent @ LightVela VPS)
+* **Last Actor:** Hermes Agent (LightVela VPS)
+* **Repo Target:** `https://github.com/Niumination/proofforge-3d` — LIVE @ `1c07519`, tersinkron di VPS
+* **Active Task:** `PF-005` (scaffold monorepo — pelaksana OpenCode, menunggu unlock Phase 1)
+* **Code Lock Status:** **LOCKED (Documentation Only)** — menunggu sinyal user untuk PHASE_1_UNLOCKED.
 
 ---
 
@@ -34,6 +34,21 @@ File ini **WAJIB** dibaca di awal sesi dan diperbarui di akhir sesi oleh setiap 
 ## Catatan Handoff Terbaru
 
 ```text
+[2026-11-17 | Hermes Agent @ LightVela VPS]
+- What Changed: repo di-clone ke ~/projects/proofforge-3d (terisolasi dari OMB/9Router — folder terpisah, service produksi tidak disentuh); PF-003 & PF-004 ditandai [x] di BACKLOG.md; Active Task → PF-005.
+- VPS Readiness (bukti perintah dijalankan):
+  - git --version          → git version 2.43.0
+  - python3 --version      → Python 3.11.16        (target >= 3.11 ✓)
+  - node -v                → v22.23.4              (target >= 20 ✓)
+  - pnpm -v                → 10.33.0               ✓
+  - cloudflared --version  → 2026.10.0             ✓ (siap staging tunnel --protocol http2)
+  - git pull --ff-only origin main → "Already up to date" @ 1c07519 (sinkronisasi OK)
+- Tests Passed: verifikasi struktur 11 file Phase 0 lengkap (root 6 + docs/ 5).
+- Next Task ID: PF-005 (OpenCode, branch feat/pf-005-core-scaffold) — menunggu Code Lock → PHASE_1_UNLOCKED dari user.
+- Blockers: tidak ada teknis; hanya menunggu keputusan unlock Phase 1.
+- Catatan Arena.ai dipatuhi: folder terpisah dari runtime OpenMausBot/9Router; skema ARCHITECTURE.md tidak diubah.
+```
+
 [2026-11-17 | Arena.ai]
 - Seluruh paket dokumentasi Phase 0 telah disusun lengkap tanpa kode aplikasi.
 - Perhatian untuk Hermes VPS: Pastikan folder proyek ini terpisah dari runtime OpenMausBot/9Router.
