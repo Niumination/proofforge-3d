@@ -6,12 +6,12 @@ File ini **WAJIB** dibaca di awal sesi dan diperbarui di akhir sesi oleh setiap 
 
 ## Status Terkini
 
-* **Active Phase:** Phase 0 selesai — siap transisi ke Phase 1
-* **Last Updated:** 2026-11-17 (Hermes Agent @ LightVela VPS)
-* **Last Actor:** Hermes Agent (LightVela VPS)
-* **Repo Target:** `https://github.com/Niumination/proofforge-3d` — LIVE @ `1c07519`, tersinkron di VPS
-* **Active Task:** `PF-005` (scaffold monorepo — pelaksana OpenCode, menunggu unlock Phase 1)
-* **Code Lock Status:** **LOCKED (Documentation Only)** — menunggu sinyal user untuk PHASE_1_UNLOCKED.
+* **Active Phase:** Phase 1 — Scaffold Non-AI & Mesin Deterministik Z3 + 3D
+* **Last Updated:** 2026-11-17 (Arena.ai via Overlay Package)
+* **Last Actor:** Arena.ai
+* **Repo Target:** `https://github.com/Niumination/proofforge-3d` — synced @ `423388e` + Phase 1 unlock
+* **Active Task:** `PF-005` s.d. `PF-008` (Batch 1A — pelaksana OpenCode di branch `feat/pf-005-core-scaffold`)
+* **Code Lock Status:** **PHASE_1_UNLOCKED** — Diizinkan menulis scaffold non-AI, FastAPI SSE, Z3 runner deterministik, skenario Z3+3D, dan Cockpit UI (dilarang menulis integrasi Gemini 4 / Managed Agents sebelum Phase 3 hari-H).
 
 ---
 
@@ -19,19 +19,33 @@ File ini **WAJIB** dibaca di awal sesi dan diperbarui di akhir sesi oleh setiap 
 
 - [x] Visi, positioning hadiah ($7,500 Main + $5,000 Best Use of Managed Agents), dan pendaftaran Cerebral Valley terkunci.
 - [x] Dokumen arsitektur inti (`README.md`, `AGENTS.md`, `ARCHITECTURE.md`, `BACKLOG.md`).
-- [x] Dokumen brainstorming skenario 3D, scaffold blueprint, workflow 4-platform (Hermes LightVela, OpenCode, Arena.ai, Cerebral Valley), dan naskah pitch 2 menit.
+- [x] Dokumen brainstorming skenario 3D, scaffold blueprint, workflow 4-platform, naskah pitch 2 menit, dan `docs/Z3-SCENARIO-MATH-SPECS.md`.
+- [x] Repo GitHub live (`PF-003`) & LightVela VPS terverifikasi (`PF-004`).
 
 ---
 
 ## Langkah Selanjutnya (Next Action)
 
-1. **Human:** Buat repo kosong `Niumination/proofforge-3d` di GitHub dan push isi folder ini mengikuti `docs/GITHUB-SETUP.md`.
-2. **Hermes Agent (LightVela VPS):** Clone repo ke VPS LightVela di direktori terisolasi, verifikasi struktur dokumen, lalu update status `PF-003` & `PF-004` di `BACKLOG.md`.
-3. **OpenCode / Arena.ai (saat sinyal Phase 1 diberikan):** Mulai bangun scaffold proyek dari `docs/SCAFFOLD-BLUEPRINT.md` (task `PF-005` s.d. `PF-015`).
+1. **OpenCode (Batch 1A — `PF-005` s.d. `PF-008`):** Buat branch `feat/pf-005-core-scaffold`, bangun struktur monorepo (`apps/web`, `apps/api`, `sandbox-agent`, `scenarios`, `scripts/verify.sh`), `.env.example`, GitHub Actions CI, FastAPI + SSE stream, serta `invariant_guard.py` + `z3_runner.py` (mode `deterministic`).
+2. **OpenCode + Arena.ai (Batch 1B — `PF-009` s.d. `PF-011`):** Implementasikan 3 skenario (`drone_swarm`, `robot_arm`, `spatial_tiling`) mengacu pada `docs/Z3-SCENARIO-MATH-SPECS.md` revisi terbaru.
+3. **OpenCode (Batch 1C — `PF-012` s.d. `PF-014`):** Bangun 3-pane Cockpit UI + Three.js 3D Viewport + Time Scrubber + Audit Hooks/Proxy Panel.
+4. **Hermes Agent @ LightVela VPS (`PF-015`):** Pull perubahan Phase 1, jalankan `bash scripts/verify.sh` di Linux bersih, dan update hasil ke `HANDOFF.md`.
 
 ---
 
 ## Catatan Handoff Terbaru
+
+```text
+[2026-11-17 | Arena.ai]
+- What Changed:
+  1. Code Lock Status dibuka menjadi PHASE_1_UNLOCKED untuk memulai Batch 1A (PF-005..PF-008).
+  2. Revisi penyempurnaan di docs/Z3-SCENARIO-MATH-SPECS.md:
+     - Scenario A (drone_swarm): gunakan bentuk kuadratik `dx² + dy² >= R_safe²` di Z3 (tanpa sqrt) dan lintasan head-on berlawanan arah (gap awal 118.86m → 0.38m pada t=4.2s) agar efek 3D dramatis & stopping-distance 85.5m selalu muat.
+     - Scenario B (robot_arm): pastikan linearisasi Taylor juga diterapkan pada `y_effector >= 0.15m` agar seluruh model tetap QF_LIA murni.
+     - Scenario C (spatial_tiling): spawn W1 & W2 di sudut berjauhan pada grid 4x4x4 sehingga konvergensi & circular wait >= 4 tick terjadi tepat sekitar tick 14..18 (DEADLOCK DETECTED at tick 18).
+- Next Task ID: PF-005..PF-008 (OpenCode, branch feat/pf-005-core-scaffold).
+- Blockers: none.
+```
 
 ```text
 [2026-11-17 | Hermes Agent @ LightVela VPS]
@@ -47,10 +61,4 @@ File ini **WAJIB** dibaca di awal sesi dan diperbarui di akhir sesi oleh setiap 
 - Next Task ID: PF-005 (OpenCode, branch feat/pf-005-core-scaffold) — menunggu Code Lock → PHASE_1_UNLOCKED dari user.
 - Blockers: tidak ada teknis; hanya menunggu keputusan unlock Phase 1.
 - Catatan Arena.ai dipatuhi: folder terpisah dari runtime OpenMausBot/9Router; skema ARCHITECTURE.md tidak diubah.
-```
-
-[2026-11-17 | Arena.ai]
-- Seluruh paket dokumentasi Phase 0 telah disusun lengkap tanpa kode aplikasi.
-- Perhatian untuk Hermes VPS: Pastikan folder proyek ini terpisah dari runtime OpenMausBot/9Router.
-- Jangan ubah skema JSON di ARCHITECTURE.md tanpa memperbarui kontrak di docs/SCAFFOLD-BLUEPRINT.md.
 ```
