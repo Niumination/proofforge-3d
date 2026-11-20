@@ -37,3 +37,7 @@ tmp/
 Thumbs.db
 .vscode/
 .idea/
+
+# Local install artifacts (npm pkg uses package-lock.json)
+proofforge_api.egg-info/
+apps/web/pnpm-lock.yaml
