@@ -41,3 +41,6 @@ Thumbs.db
 # Local install artifacts (npm pkg uses package-lock.json)
 proofforge_api.egg-info/
 apps/web/pnpm-lock.yaml
+
+# TS build info
+*.tsbuildinfo
