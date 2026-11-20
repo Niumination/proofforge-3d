@@ -1,15 +1,39 @@
-import { useForgeStore } from "./store/forgeStore";
-import { useAuditStore } from "./store/auditStore";
-import { apiClient } from "./lib/apiClient";
-import { SpecPanel } from "./components/SpecPanel";
-import { Viewport3D } from "./components/Viewport3D";
-import { TimeScrubber } from "./components/TimeScrubber";
-import { AuditPanel } from "./components/AuditPanel";
-import { PatchDiffModal } from "./components/PatchDiffModal";
+import { useEffect, useRef } from "react";
+import { useForgeStore } from "../store/forgeStore";
+import { useAuditStore } from "../store/auditStore";
+import { apiClient } from "../lib/apiClient";
+import { sseClient } from "../lib/sseClient";
+import { SpecPanel } from "./SpecPanel";
+import { Viewport3D } from "./Viewport3D";
+import { TimeScrubber } from "./TimeScrubber";
+import { AuditPanel } from "./AuditPanel";
+import { PatchDiffModal } from "./PatchDiffModal";
 
 export default function App() {
-  const { state } = useForgeStore();
-  const { events } = useAuditStore();
+  const { state, setRunning, applyResult, reset } = useForgeStore();
+  const { events, addEvent, clear } = useAuditStore();
+  const streamRef = useRef<AsyncGenerator<{ event: string; data: unknown }> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      streamRef.current?.return?.();
+    };
+  }, []);
+
+  const onRun = async () => {
+    if (!state.request) return;
+    setRunning(state.request);
+    clear();
+    const { runId } = await apiClient.runForge(state.request);
+    const stream = sseClient.stream(runId);
+    streamRef.current = stream;
+    for await (const ev of stream) {
+      addEvent(ev.event, ev.data as Record<string, unknown>);
+      if (ev.event === "VERIFICATION_RESULT") {
+        applyResult(ev.data as never, (ev.data as { frames?: unknown }).frames ?? []);
+      }
+    }
+  };
 
   return (
     <div className="h-screen w-screen bg-zinc-950 text-zinc-200 flex flex-col font-sans">
@@ -30,7 +54,7 @@ export default function App() {
         </aside>
       </div>
       <footer className="border-t border-zinc-800 p-2">
-        <TimeScrubber frames={state.frames} onRun={async () => {}} />
+        <TimeScrubber frames={state.frames} onRun={onRun} />
       </footer>
       <PatchDiffModal />
     </div>

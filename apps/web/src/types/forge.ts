@@ -44,3 +44,8 @@ export type SSEEventType =
   | "PROXY_AUDIT"
   | "VERIFICATION_RESULT"
   | "PATCH_DIFF";
+
+export interface AuditEvent {
+  type: string;
+  payload: Record<string, unknown>;
+}
