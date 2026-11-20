@@ -22,6 +22,6 @@ else
   npm --prefix apps/web test
 fi
 
-"$RUFF" check apps/api scenarios sandbox-agent
+"$RUFF" check apps/api scenarios sandbox-agent scripts
 "$PYTEST" apps/api -v
 echo "VERIFY_OK"

@@ -1,8 +1,9 @@
 from pathlib import Path
 
-from apps.api.main import app
+from apps.api.main import app, configure_static_ui
 from apps.api.verifier.invariant_guard import check_invariant_integrity, compute_file_hash
 from apps.api.verifier.z3_runner import run_z3
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 
@@ -87,3 +88,28 @@ def test_api_health_forge_sse_and_export() -> None:
     )
     assert res_export.status_code == 200
     assert res_export.json()["proxy_audit"]["redacted"] is True
+
+
+def test_static_spa_serving_and_api_404_isolation(tmp_path: Path) -> None:
+    dist = tmp_path / "dist"
+    (dist / "assets").mkdir(parents=True)
+    (dist / "index.html").write_text("<html><title>ProofForge 3D</title></html>")
+    (dist / "assets" / "app.js").write_text("console.log('ok');")
+
+    test_app = FastAPI()
+    assert configure_static_ui(test_app, dist_path=dist) is True
+
+    client = TestClient(test_app)
+    root_res = client.get("/")
+    assert root_res.status_code == 200
+    assert "ProofForge 3D" in root_res.text
+
+    spa_route = client.get("/scenarios/drone_swarm")
+    assert spa_route.status_code == 200
+    assert "ProofForge 3D" in spa_route.text
+
+    asset_res = client.get("/assets/app.js")
+    assert asset_res.status_code == 200
+
+    api_miss = client.get("/api/does-not-exist")
+    assert api_miss.status_code == 404

@@ -6,30 +6,31 @@ File ini **WAJIB** dibaca di awal sesi dan diperbarui di akhir sesi oleh setiap 
 
 ## Status Terkini
 
-* **Active Phase:** Phase 1 — Scaffold Non-AI & Mesin Deterministik Z3 + 3D
-* **Last Updated:** 2026-11-20 (Arena.ai Phase 1 Overlay Build)
+* **Active Phase:** Phase 2 — Pre-Flight Staging & Kesiapan Demo NYC (`PF-015`..`PF-018`)
+* **Last Updated:** 2026-11-20 (Arena.ai Phase 2 Staging Overlay)
 * **Last Actor:** Arena.ai
 * **Repo Target:** `https://github.com/Niumination/proofforge-3d`
-* **Active Task:** `PF-015` — Verifikasi E2E Phase 1 via `scripts/verify.sh` oleh Hermes Agent @ LightVela VPS
-* **Code Lock Status:** **PHASE_1_UNLOCKED** — Phase 1 Non-AI Core + Z3 Scenarios + Cockpit UI lengkap dan terverifikasi (`pytest`, `ruff`, `tsc`, `vite build`, `vitest`). Phase 3 AI integrations (`gemini-4-argon`, `antigravity-preview-09-2026`) tetap dikunci hingga Hackathon Day (Nov 21, 2026).
+* **Active Task:** `PF-015` & `PF-016` — Hermes Agent @ LightVela VPS menjalankan `bash scripts/vps-stage.sh` + merge `feat/pf-005-phase1` → `main`
+* **Code Lock Status:** **PHASE_2_STAGING** — Single-process production UI+API serving, live TCP/SSE smoke suite, LightVela VPS staging scripts, dan naskah dry-run 120 detik selesai. Integrasi AI Phase 3 (`gemini-4-argon`, `antigravity-preview-09-2026`) tetap dikunci hingga Hackathon Day (Nov 21, 2026).
 
 ---
 
 ## Apa yang Sudah Selesai
 
 - [x] Phase 0 dokumentasi & blueprint (`PF-001`–`PF-004`).
-- [x] Monorepo scaffold, `.env.example`, `.github/workflows/ci.yml`, `scripts/verify.sh` (`PF-005`–`PF-006`).
-- [x] Backend FastAPI SSE orchestrator + SHA-256 `invariant_guard.py` + real `z3-solver` runner (`PF-007`–`PF-008`).
-- [x] Tiga skenario Z3 + 3D real (`drone_swarm` 101 frames, `robot_arm` 41 frames, `spatial_tiling` 25 frames) sesuai `docs/Z3-SCENARIO-MATH-SPECS.md` (`PF-009`–`PF-011`).
-- [x] Frontend 3-pane Cockpit UI + Three.js Viewport + Time Scrubber + Patch Diff Modal + Hooks/Proxy Audit Panel (`PF-012`–`PF-014`).
-- [x] `sandbox-agent/` & `.agents/skills/` templates (`PF-017`).
+- [x] Phase 1 Non-AI Core + Real Z3 Scenarios + Three.js 3D Cockpit (`PF-005`–`PF-014`, `PF-017`) ter-push ke `feat/pf-005-phase1` (`f5fb2a2`).
+- [x] Perbaikan packaging `apps/api/pyproject.toml` (`[tool.setuptools.packages.find]`) sehingga `pip install -e "./apps/api[dev]"` berjalan bersih tanpa error flat-layout.
+- [x] Single-process production SPA serving di `apps/api/main.py` (`apps/web/dist` + path-traversal guard + `/api/*` isolation).
+- [x] Live TCP/HTTP/SSE smoke test (`scripts/smoke_e2e.py`) mencakup `/`, `/api/health`, dan alur penuh 3 skenario + proxy export.
+- [x] Skrip VPS staging & tunnel (`scripts/vps-stage.sh`, `scripts/vps-tunnel.sh`, `scripts/demo-offline.sh`, `deploy/proofforge-api.service`) + `docs/PREFLIGHT-CHECKLIST-NYC.md`.
 
 ---
 
 ## Langkah Selanjutnya (Next Action)
 
-1. **OpenCode:** Terapkan Phase 1 overlay ke branch `feat/pf-005-phase1`, jalankan `bash scripts/verify.sh`, lalu merge ke `main` setelah lolos.
-2. **Hermes Agent @ LightVela VPS (`PF-015`):** `git pull` repo terbaru, jalankan `bash scripts/verify.sh` di Linux bersih, dan uji smoke test API + UI staging (`PF-016`).
+1. **OpenCode / Human:** Ekstrak `proofforge-phase2-staging-overlay.zip` di branch `feat/pf-005-phase1`, jalankan `bash scripts/verify.sh`, commit + push, lalu merge `feat/pf-005-phase1` → `main`.
+2. **Hermes Agent @ LightVela VPS (`PF-015` & `PF-016`):** Jalankan `bash scripts/vps-stage.sh` di `~/projects/proofforge-3d`, tandai `PF-015`/`PF-016` `[x]`, dan uji `scripts/vps-tunnel.sh` bila perlu staging publik.
+3. **Human (`PF-018`):** Lakukan 1× dry run 120 detik mengikuti `docs/PREFLIGHT-CHECKLIST-NYC.md` di `http://127.0.0.1:8000`.
 
 ---
 
@@ -37,17 +38,15 @@ File ini **WAJIB** dibaca di awal sesi dan diperbarui di akhir sesi oleh setiap 
 
 ```text
 [2026-11-20 | Arena.ai]
-- What Changed:
-  1. Diaudit branch `feat/pf-005-phase1` (`41c35a6`) dan disiapkan Phase 1 Replacement Overlay yang teruji penuh:
-     - Perbaikan seluruh bug pada `forge.py`, `z3_runner.py`, `deterministic_sim.py`, `sseClient.ts`, `apiClient.ts`, `forgeStore.ts`, `Viewport3D.tsx`, `TimeScrubber.tsx`, `SpecPanel.tsx`, `AuditPanel.tsx`, dan `PatchDiffModal.tsx`.
-     - Implementasi Z3 SMT nyata (`z3-solver`) untuk `drone_swarm` (quadratic separation SAT -> UNSAT), `robot_arm` (QF_LIA Taylor torque + table height SAT -> UNSAT), dan `spatial_tiling` (corner-spawn tick-18 deadlock SAT -> UNSAT).
-     - Pembuatan `apps/api/tests/test_phase1.py` (5 test) + `apps/web/src/App.test.tsx` (2 test).
+- What Changed (Phase 2 Staging Overlay):
+  1. Memperbaiki `apps/api/pyproject.toml` (`[tool.setuptools.packages.find]`) agar `pip install -e "./apps/api[dev]"` tidak gagal flat-layout discovery.
+  2. Menambahkan SPA static serving (`apps/web/dist`) di `apps/api/main.py` + `apps/api/config.py` untuk mode offline 1-proses & tunnel VPS.
+  3. Menambahkan `scripts/smoke_e2e.py` (uji live TCP/HTTP/SSE untuk 3 skenario + static SPA) dan test unit baru di `apps/api/tests/test_phase1.py`.
+  4. Menambahkan `scripts/demo-offline.sh`, `scripts/vps-stage.sh`, `scripts/vps-tunnel.sh`, `deploy/proofforge-api.service`, dan `docs/PREFLIGHT-CHECKLIST-NYC.md`.
 - Tests Passed (Arena Sandbox):
-  - `pytest apps/api -v` → 5 passed
-  - `ruff check apps/api scenarios sandbox-agent` → All checks passed (0 errors)
-  - `tsc -b --noEmit` → 0 errors
-  - `vite build` → dist/ built cleanly
-  - `vitest run` → 2 passed
-- Next Task ID: PF-015 (Hermes Agent @ LightVela VPS).
+  - `pip install -e "./apps/api[dev]"` → clean editable install
+  - `bash scripts/verify.sh` → tsc, vite build, vitest (2), ruff, pytest (6) ALL PASS
+  - Live `uvicorn` + `scripts/smoke_e2e.py --require-ui` → SMOKE_E2E_OK (all 3 scenarios + UI)
+- Next Task ID: PF-015 & PF-016 (Hermes Agent @ LightVela VPS) + merge feat/pf-005-phase1 -> main.
 - Blockers: none.
 ```

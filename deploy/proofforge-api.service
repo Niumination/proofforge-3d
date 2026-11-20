@@ -1,0 +1,14 @@
+[Unit]
+Description=ProofForge 3D Staging API + UI (Isolated from OMB/9Router)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/projects/proofforge-3d
+EnvironmentFile=-%h/projects/proofforge-3d/.env
+ExecStart=%h/projects/proofforge-3d/.venv/bin/uvicorn apps.api.main:app --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target
