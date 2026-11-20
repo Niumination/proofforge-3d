@@ -18,5 +18,5 @@ async def health() -> dict:
     return {"status": "ok", "mode": settings.proofforge_mode}
 
 
-app.include_router(forge.router, prefix="/api/forge")
-app.include_router(export.router, prefix="/api/forge")
+app.include_router(forge.router)
+app.include_router(export.router)
