@@ -15,8 +15,8 @@ Pelacakan tugas lintas agen (**Arena.ai**, **Hermes Agent @ LightVela VPS**, **O
 | :--- | :--- | :--- | :--- | :--- |
 | `PF-001` | Finalisasi dokumen visi, kontrak agen, dan arsitektur teknis | Arena.ai | `README.md`, `AGENTS.md`, `ARCHITECTURE.md` | `[x]` |
 | `PF-002` | Susun brainstorming skenario 3D, scaffold blueprint, workflow multi-agen, dan naskah pitch | Arena.ai | `docs/*.md`, `BACKLOG.md`, `HANDOFF.md` | `[x]` |
-| `PF-003` | Buat repo GitHub baru `Niumination/proofforge-3d` & push dokumentasi Phase 0 | Human + Hermes | GitHub repo live & terindeks | `[x]` Repo live @ `1c07519`, 11 file terverifikasi via clone VPS |
-| `PF-004` | Setup workspace terisolasi di VPS LightVela & uji sinkronisasi Hermes Agent | Hermes (LightVela) | Clone repo + konfirmasi `HANDOFF.md` | `[x]` Clone `~/projects/proofforge-3d` (isolasi dari OMB/9Router), toolchain diverifikasi — bukti di `HANDOFF.md` |
+| `PF-003` | Buat repo GitHub baru `Niumination/proofforge-3d` & push dokumentasi Phase 0 | Human + Hermes | GitHub repo live & terindeks | `[x]` Repo live @ `1c07519` |
+| `PF-004` | Setup workspace terisolasi di VPS LightVela & uji sinkronisasi Hermes Agent | Hermes (LightVela) | Clone repo + konfirmasi `HANDOFF.md` | `[x]` Clone `~/projects/proofforge-3d` |
 
 ---
 
@@ -26,16 +26,16 @@ Pelacakan tugas lintas agen (**Arena.ai**, **Hermes Agent @ LightVela VPS**, **O
 
 | ID | Tugas | Owner | Output / File | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| `PF-005` | Inisialisasi monorepo scaffold (`apps/web`, `apps/api`, `sandbox-agent`, `scenarios`, `scripts`) | OpenCode | Struktur direktori & config build bersih | `[ ]` |
-| `PF-006` | Setup `.env.example`, `.gitignore`, dan GitHub Actions CI (typecheck + pytest + secret scan) | OpenCode + Hermes | `.github/workflows/ci.yml`, `.env.example` | `[ ]` |
-| `PF-007` | Bangun backend FastAPI dasar + endpoint `/api/health` & `/api/forge/stream/{run_id}` (SSE) | OpenCode | `apps/api/main.py`, `apps/api/stream.py` | `[ ]` |
-| `PF-008` | Implementasi engine runner Z3 lokal + pengunci SHA-256 `invariants_locked.py` | OpenCode | `apps/api/verifier/z3_runner.py` | `[ ]` |
-| `PF-009` | Implementasi **Skenario A (Drone Swarm Collision Avoidance)** beserta bug awal & trace 3D | OpenCode + Arena | `scenarios/drone_swarm/` | `[ ]` |
-| `PF-010` | Implementasi **Skenario B (Robot Arm Torque & Joint Envelope)** | OpenCode + Arena | `scenarios/robot_arm/` | `[ ]` |
-| `PF-011` | Implementasi **Skenario C (Spatial Tiling Deadlock)** | OpenCode + Arena | `scenarios/spatial_tiling/` | `[ ]` |
-| `PF-012` | Bangun Frontend Cockpit UI: 3-pane layout (Spec Ledger, 3D Viewport, Proof/Security Audit) | OpenCode | `apps/web/src/App.tsx`, store Zustand | `[ ]` |
-| `PF-013` | Bangun Three.js 3D State-Space Viewport + Time Scrubber + Red Collision/Breach Highlight | OpenCode | `apps/web/src/components/Viewport3D.tsx` | `[ ]` |
-| `PF-014` | Bangun Panel Diff Patch & Panel Audit Hooks/Proxy (simulasi event SSE lokal) | OpenCode | `apps/web/src/components/AuditPanel.tsx` | `[ ]` |
+| `PF-005` | Inisialisasi monorepo scaffold (`apps/web`, `apps/api`, `sandbox-agent`, `scenarios`, `scripts`) | OpenCode + Arena | Struktur direktori & config build bersih | `[x]` |
+| `PF-006` | Setup `.env.example`, `.gitignore`, dan GitHub Actions CI (typecheck + pytest + ruff) | OpenCode + Arena | `.github/workflows/ci.yml`, `.env.example` | `[x]` |
+| `PF-007` | Bangun backend FastAPI dasar + endpoint `/api/health`, `/api/forge/run`, `/api/forge/stream/{run_id}` (SSE), `/api/forge/export` | OpenCode + Arena | `apps/api/main.py`, `routes/forge.py`, `routes/export.py` | `[x]` |
+| `PF-008` | Implementasi engine runner Z3 lokal + pengunci SHA-256 `invariants_locked.py` | OpenCode + Arena | `apps/api/verifier/z3_runner.py`, `invariant_guard.py` | `[x]` |
+| `PF-009` | Implementasi **Skenario A (Drone Swarm Collision Avoidance)** beserta bug awal & trace 3D (101 frames) | OpenCode + Arena | `scenarios/drone_swarm/` | `[x]` |
+| `PF-010` | Implementasi **Skenario B (Robot Arm Torque & Joint Envelope)** beserta QF_LIA Taylor & trace 3D (41 frames) | OpenCode + Arena | `scenarios/robot_arm/` | `[x]` |
+| `PF-011` | Implementasi **Skenario C (Spatial Tiling Deadlock)** beserta tick-18 deadlock & trace 3D (25 frames) | OpenCode + Arena | `scenarios/spatial_tiling/` | `[x]` |
+| `PF-012` | Bangun Frontend Cockpit UI: 3-pane layout (Spec Ledger, 3D Viewport, Proof/Security Audit) | OpenCode + Arena | `apps/web/src/App.tsx`, `SpecPanel.tsx`, Zustand stores | `[x]` |
+| `PF-013` | Bangun Three.js 3D State-Space Viewport + Time Scrubber + Red Collision/Breach Highlight | OpenCode + Arena | `Viewport3D.tsx`, `TimeScrubber.tsx` | `[x]` |
+| `PF-014` | Bangun Panel Diff Patch & Panel Audit Hooks/Proxy (simulasi event SSE lokal) | OpenCode + Arena | `AuditPanel.tsx`, `PatchDiffModal.tsx` | `[x]` |
 | `PF-015` | Verifikasi E2E Phase 1 via `scripts/verify.sh` di lokal & LightVela VPS | Hermes (LightVela) | Laporan lulus 0 error di `HANDOFF.md` | `[ ]` |
 
 ---
@@ -45,7 +45,7 @@ Pelacakan tugas lintas agen (**Arena.ai**, **Hermes Agent @ LightVela VPS**, **O
 | ID | Tugas | Owner | Output / File | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | `PF-016` | Deploy staging demo deterministik di LightVela VPS (atau pastikan jalan 100% offline/lokal di laptop demo) | Hermes (LightVela) | Tunnel `--protocol http2` / offline script | `[ ]` |
-| `PF-017` | Siapkan `.agents/skills/` & template `AGENTS.md`/`SKILL.md` untuk Antigravity Managed Agent | Arena + OpenCode | `sandbox-agent/AGENTS.md`, `SKILL.md` | `[ ]` |
+| `PF-017` | Siapkan `.agents/skills/` & template `AGENTS.md`/`SKILL.md` untuk Antigravity Managed Agent | Arena + OpenCode | `sandbox-agent/AGENTS.md`, `SKILL.md`, `.agents/skills/` | `[x]` |
 | `PF-018` | Uji coba kering (dry run) alur pitch 2 menit dengan mode fallback deterministik | Human + Arena | Checklist kesiapan laptop & browser | `[ ]` |
 
 ---

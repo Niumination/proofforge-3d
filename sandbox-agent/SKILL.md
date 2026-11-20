@@ -1,5 +1,9 @@
-# Skill: Z3 & Surgical Patch di Sandbox
-- Runner: `python3 z3_runner.py` dengan timeout maksimal 8000 ms.
-- Sebelum solver: jalankan `pre_verify_guard.py` (SHA-256 check).
-- Setelah SAT: scene_adapter membentuk counterexample frame; patcher menjalankan surgical patch.
-- Setelah UNSAT: agent status `PROVEN_SAFE`.
+---
+name: z3-counterexample-patcher
+description: Run Z3 verification in sandbox and patch implementation from counterexample traces.
+---
+# Z3 Counterexample Patcher
+1. Compute SHA-256 of `invariants_locked.py` before & after every run.
+2. Run `z3_harness.py` with 8000ms timeout.
+3. On SAT: extract counterexample variables and patch `system_impl.py`.
+4. On UNSAT: emit Proof Certificate via Credential Proxy.

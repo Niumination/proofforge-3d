@@ -1,6 +1,4 @@
-# Skenario A — drone_swarm (HERO DEMO)
+# Skenario A: Drone Swarm Collision Avoidance
 
-- Deskripsi: koordinasi swarm quadrotor, invarian `min pairwise distance >= R_safe`.
-- Buggy impl: naive latency compensation → tidak pernah mendeteksi (SAT counterexample).
-- Fixed impl: dynamic stopping-envelope braking → UNSAT.
-- Scene adapter: quadrotor 3D + safety sphere wireframe + red frame.
+Dua drone otonom melintas head-on dengan offset lateral `0.38 m` pada kecepatan `v_A, v_B ∈ [10, 15] m/s` dan latensi sensor+rem `latency ∈ [0.05, 0.30] s`.
+Invarian terkunci menuntut jarak Euclidean antar drone selalu `>= 1.50 m` di seluruh horizon waktu `0..10 s`.

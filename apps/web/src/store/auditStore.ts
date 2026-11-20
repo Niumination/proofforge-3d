@@ -1,9 +1,5 @@
 import { create } from "zustand";
-
-export interface AuditEvent {
-  type: string;
-  payload: Record<string, unknown>;
-}
+import type { AuditEvent } from "../types/forge";
 
 export interface AuditState {
   events: AuditEvent[];
@@ -13,6 +9,16 @@ export interface AuditState {
 
 export const useAuditStore = create<AuditState>((set) => ({
   events: [],
-  addEvent: (type, payload) => set((s) => ({ events: [...s.events, { type, payload }].slice(-500) })),
+  addEvent: (type, payload) =>
+    set((s) => ({
+      events: [
+        ...s.events,
+        {
+          type,
+          payload,
+          timestamp: new Date().toLocaleTimeString("en-US", { hour12: false }),
+        },
+      ].slice(-500),
+    })),
   clear: () => set({ events: [] }),
 }));

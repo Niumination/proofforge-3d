@@ -1,7 +1,20 @@
-"""Pre-verify guard — cek SHA-256 invariants_locked.py sebelum Z3 jalan."""
+"""Protected Hook: verify SHA-256 integrity of invariants_locked.py before verification."""
+
+import hashlib
+import sys
+from pathlib import Path
 
 
-def pre_verify_guard(expected_hash: str, content: str) -> bool:
-    import hashlib
+def sha256_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
-    return hashlib.sha256(content.encode()).hexdigest() == expected_hash
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: pre_verify_guard.py <invariants_path> <expected_sha256>")
+        sys.exit(2)
+    actual = sha256_file(Path(sys.argv[1]))
+    if actual != sys.argv[2]:
+        print(f"HOOK_BLOCKED: hash mismatch ({actual} != {sys.argv[2]})")
+        sys.exit(1)
+    print(f"HOOK_ALLOW: {actual}")

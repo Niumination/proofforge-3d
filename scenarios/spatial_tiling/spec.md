@@ -1,6 +1,4 @@
-# Skenario C — spatial_tiling (Grid 3D Deadlock)
+# Skenario C: Distributed Spatial Tiling & Resource Deadlock
 
-- Deskripsi: grid tiling 3D, deadlock saat tick 18.
-- Buggy impl: spawn terlalu rapat → deadlock.
-- Fixed impl: spawn berjauhan → aman.
-- Scene adapter: grid + deadlock frame.
+Empat worker (`W1..W4`) bernavigasi dan mengunci sel di grid 3D `4×4×4`.
+Invarian terkunci menjamin *mutual exclusion* dan bebas *circular wait* `>= 4` tick berturut-turut.

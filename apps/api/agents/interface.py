@@ -1,9 +1,13 @@
-"""AgentRunner interface — Phase 1: memisahkan deterministic vs live (Phase 3)."""
+from abc import ABC, abstractmethod
+from typing import Any
 
 
-class AgentRunner:
-    def __init__(self, mode: str) -> None:
-        self.mode = mode
-
-    def run(self, *args, **kwargs):
-        raise NotImplementedError("Phase 1: deterministic_sim; Phase 3: argon_synth/managed_runner")
+class AgentRunnerInterface(ABC):
+    @abstractmethod
+    def run_pipeline(
+        self,
+        scenario_id: str,
+        inject_initial_bug: bool,
+        enable_adversarial_hook_test: bool,
+    ) -> dict[str, Any]:
+        raise NotImplementedError

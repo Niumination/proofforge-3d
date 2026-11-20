@@ -1,5 +1,7 @@
+export type ScenarioId = "drone_swarm" | "robot_arm" | "spatial_tiling";
+
 export interface ForgeRunRequest {
-  scenario_id: string;
+  scenario_id: ScenarioId;
   mode: "live_gemini" | "deterministic";
   custom_spec?: string;
   inject_initial_bug: boolean;
@@ -13,11 +15,13 @@ export interface VerificationResult {
   iteration: number;
   status: VerificationStatus;
   invariant_hash_valid: boolean;
+  invariant_sha256: string;
   violated_invariant: string | null;
-  counterexample_inputs: Record<string, number> | null;
+  counterexample_inputs: Record<string, string | number> | null;
   violated_tick: number | null;
   violated_time_sec: number | null;
   solver_duration_ms: number;
+  note?: string | null;
 }
 
 export interface SceneEntity {
@@ -27,6 +31,14 @@ export interface SceneEntity {
   rotation_euler: number[];
   velocity: number[];
   status: string;
+  meta?: Record<string, unknown>;
+}
+
+export interface ConstraintsOverlay {
+  type: string;
+  center: number[];
+  radius: number;
+  breached: boolean;
 }
 
 export interface SceneTimelineFrame {
@@ -34,18 +46,16 @@ export interface SceneTimelineFrame {
   time_sec: number;
   is_violation: boolean;
   entities: SceneEntity[];
-  constraints_overlay: Array<{ type: string; center: number[]; radius: number; breached: boolean }>;
+  constraints_overlay: ConstraintsOverlay[];
 }
-
-export type SSEEventType =
-  | "STAGE_CHANGED"
-  | "AGENT_LOG"
-  | "HOOK_AUDIT"
-  | "PROXY_AUDIT"
-  | "VERIFICATION_RESULT"
-  | "PATCH_DIFF";
 
 export interface AuditEvent {
   type: string;
   payload: Record<string, unknown>;
+  timestamp: string;
+}
+
+export interface ProofExportResponse {
+  export_url: string;
+  proxy_audit: Record<string, unknown>;
 }

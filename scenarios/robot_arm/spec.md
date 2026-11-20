@@ -1,6 +1,4 @@
-# Skenario B — robot_arm (3-DOF Torque & Joint Envelope)
+# Skenario B: 3-DOF Robot Arm Torque & Joint Envelope
 
-- Deskripsi: aksi gerak arm 3-DOF, invarian torque/joint envelope.
-- Buggy impl: torque melebihi batas (`tau2 > 8.0`).
-- Fixed impl: envelope braking.
-- Scene adapter: arm visual + joint torque overlay.
+Lengan robot 3-DOF mengangkat payload `m ∈ [0.5, 5.0] kg` menuju target di tepi workspace `(0.70, 0.20)`.
+Menggunakan linearisasi Taylor orde-1 di sekitar `θ_nom` agar seluruh model tetap `QF_LIA` murni (< 1 detik).
