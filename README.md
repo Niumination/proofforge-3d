@@ -6,6 +6,7 @@
 [![Target Event](https://img.shields.io/badge/Event-Gemini%204%20NYC%20Hackathon-4285F4)](#)
 [![Track](https://img.shields.io/badge/Tracks-Advanced%20Reasoning%20%7C%20Visual%20Coding%20%7C%20Managed%20Agents-34A853)](#)
 [![Status](https://img.shields.io/badge/Build-Phase%201--5%20Verified%20(24%20Pytest%20%2B%20Vitest)-00C853)](#)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
 ---
 
@@ -50,5 +51,20 @@ bash scripts/demo-offline.sh
 | Skenario | Domain Z3 | Pelanggaran Awal (`SAT`) | Bukti Aman (`UNSAT`) |
 | :--- | :--- | :--- | :--- |
 | `drone_swarm` | Quadratic kinematics (tanpa `sqrt`) | Head-on gap `0.38m < r_safe_m` @ `tick 42` (`4.2s`) | Dynamic stopping-envelope braking (`101 frames`) |
-| `robot_arm` | Pure `QF_LIA` Taylor linearization | Elbow torque `|tau2| > 8.0 N·m` @ `tick 28` | Clamped reach & payload envelope (`41 frames`) |
+| `robot_arm` | Pure `QF_LIA` Taylor linearization | Elbow torque `abs(tau2) > 8.0 N·m` @ `tick 28` | Clamped reach & payload envelope (`41 frames`) |
 | `spatial_tiling` | `Int` grid `4×4×4` mutual exclusion | Circular wait deadlock `W1↔W2` @ `tick 18` | Canonical lexicographic lock order (`21 frames`) |
+
+---
+
+## 4. Peta Dokumentasi
+
+| Dokumen | Fungsi |
+| :--- | :--- |
+| [`ARCHITECTURE.md`](./ARCHITECTURE.md) | Arsitektur 4-lapis, kontrak JSON/SSE, model keamanan Hooks & Proxy |
+| [`docs/Z3-SCENARIO-MATH-SPECS.md`](./docs/Z3-SCENARIO-MATH-SPECS.md) | Spesifikasi matematika Z3 eksak untuk 3 skenario |
+| [`docs/PITCH-QUICK-CARD.md`](./docs/PITCH-QUICK-CARD.md) | 1-halaman Judge Q&A & alur live stage 60 detik |
+| [`docs/SUBMISSION-PORTAL-KIT.md`](./docs/SUBMISSION-PORTAL-KIT.md) | Isian portal Cerebral Valley & shotlist video 120 detik |
+| [`docs/VIDEO-AND-STAGE-TELEPROMPTER.md`](./docs/VIDEO-AND-STAGE-TELEPROMPTER.md) | Naskah teleprompter kata-per-kata 120 detik |
+| [`docs/PREFLIGHT-CHECKLIST-NYC.md`](./docs/PREFLIGHT-CHECKLIST-NYC.md) | Staging VPS (`--protocol http2`) & dry-run panggung |
+| [`docs/HACKATHON-DAY-RUNBOOK.md`](./docs/HACKATHON-DAY-RUNBOOK.md) | Checklist pagi Hari-H & stage hotkeys |
+| [`BACKLOG.md`](./BACKLOG.md) · [`HANDOFF.md`](./HANDOFF.md) | Tracking progres & state estafet lintas agen |
