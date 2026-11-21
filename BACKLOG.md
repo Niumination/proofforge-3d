@@ -34,3 +34,9 @@ Pelacakan tugas lintas agen (**Arena.ai**, **Hermes Agent @ LightVela VPS**, **O
 | `PF-027` | Full build freeze + `verify.sh` + live `smoke_e2e.py` + `jsdom` React UI mount test + judge docs | Pkg 4–7 | `apps/web/src/App.test.tsx`, `docs/PITCH-QUICK-CARD.md`, `README.md` | `[x]` |
 | `PF-028` | Rekam video cadangan 120 detik & submit ke portal Cerebral Valley | Human | Submission Hari-H NYC | `[ ]` |
 | `PF-029` | Judging & Live 2-Minute Pitch di depan tim Google DeepMind | Human | Presentasi panggung NYC | `[ ]` |
+
+### Phase 4 — Competition-Edge Packages (`pkg8`–`pkg11`, Verified on top of `41dbd0d`)
+- **PF-030 (pkg8):** Dynamic parametric Z3 overrides (`r_safe_m`, `payload_kg`, `max_wait_ticks`) propagating from Voice/Spec into `z3_runner.py`, `scene_exporter.py`, and 3D `constraints_overlay` — **Done**
+- **PF-031 (pkg9):** Downloadable Formal Audit Report (`GET /api/forge/report/{cert_id}` Markdown) + Before/After Safety Convergence Delta card in `AuditPanel.tsx` — **Done**
+- **PF-032 (pkg10):** 3D Cockpit Visual Upgrade (drone velocity `ArrowHelper` vectors, midpoint shockwave rings, 3D articulated cylinder robot arm links + torque breach halo, spatial deadlock cycle arrows, live breach tick badge) — **Done**
+- **PF-033 (pkg11):** Bounded `_runs` `OrderedDict` store, `GET /api/forge/scenarios`, **1-Click Stage Auto-Demo** showcase button, upgraded `scripts/smoke_e2e.py` — **Done**

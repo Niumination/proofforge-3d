@@ -1,32 +1,15 @@
-# HANDOFF.md — State Estafet Lintas Agen
+# ProofForge 3D — Engineering & Pitch Handoff
 
----
+## Current Status
+**Phase 1 + Phase 2 + Phase 3 (`pkg1`–`pkg7`) + Phase 4 (`pkg8`–`pkg11`) Complete & Verified.**
+- **Test Suites:** `23/23` backend pytest tests passing, `3/3` frontend Vitest (`jsdom` + React 19 mount + `1-Click Stage Auto-Demo`) passing, `ruff check` + `tsc --noEmit` + `vite build` clean.
+- **Live E2E Smoke:** `/api/health`, `/api/forge/scenarios`, `/api/forge/run`, `/api/forge/stream/{run_id}`, `/api/forge/export`, `/api/forge/certificate/{cert_id}`, `/api/forge/report/{cert_id}`, parametric `r_safe_m=2.2m` Z3 telemetry, `/api/forge/redteam`, and `/api/forge/voice-constraint` all verified against live Uvicorn + built SPA.
 
-## Status Terkini
+## Judge Demo Runbook (60s Live Stage)
+1. Click **1-Click Stage Auto-Demo** (auto-plays red `SAT_VIOLATION` collision in 3D, switches cleanly to green `UNSAT_PROVEN` patch, and signs proof certificate via Credential Proxy).
+2. Click **Set drone separation to 2.2 m** → **Run ProofForge Pipeline** to prove live parametric Z3 constraints expand the 3D safety spheres in real time.
+3. Click **Simulate Prompt Injection Attack** → **Download Audit Report (.md)** to demonstrate Protected Hooks & Credential Proxy zero-leak guarantees.
 
-* **Active Phase:** Phase 3 COMPLETE (`PF-019`–`PF-027` verified) → Ready for `PF-028` & `PF-029`
-* **Last Updated:** 2026-11-21 (Arena.ai Package 7 Final Polish & UI Render Tests)
-* **Last Actor:** Arena.ai
-* **Repo Target:** `https://github.com/Niumination/proofforge-3d`
-* **Active Task:** Apply `pkg7`, push ke `main`, rekam video cadangan 120 detik (`PF-028`), dan presentasi panggung (`PF-029`)
-
----
-
-## Catatan Handoff Terbaru
-
-```text
-[2026-11-21 | Arena.ai]
-- What Changed (Package 7 — Final UI Polish, jsdom Render Test & Pitch Quick-Card):
-  1. Membersihkan label internal `(PF-026)` dari UI `SpecPanel.tsx`.
-  2. Menambahkan unit test mount React 19 (`jsdom`) pada `apps/web/src/App.test.tsx` untuk memverifikasi `SpecPanel`, `TimeScrubber`, `AuditPanel`, `PatchDiffModal`, dan `ProofCertModal`.
-  3. Menambahkan `docs/PITCH-QUICK-CARD.md` (30-second hook + 4 jawaban Q&A juri Google DeepMind) serta sinkronisasi penuh `BACKLOG.md` (`PF-019`..`PF-027` `[x]`).
-- Tests Passed (Arena Sandbox):
-  - `pytest apps/api -v` -> 18 passed
-  - `ruff check apps/api scenarios sandbox-agent scripts` -> 0 errors
-  - `tsc -b --noEmit` -> 0 errors
-  - `vite build` -> built cleanly
-  - `vitest run` -> 3 passed (termasuk React 19 UI component mount)
-  - Live `uvicorn` + `scripts/smoke_e2e.py --require-ui` -> SMOKE_E2E_OK
-- Next Task ID: PF-028 (backup video + portal submission), PF-029 (live pitch).
-- Blockers: none.
-```
+## Remaining Human Actions
+- **PF-028:** Record 2-minute demo video & submit final portal form (`docs/SUBMISSION-PORTAL-KIT.md`).
+- **PF-029:** Rehearse 3-minute live pitch (`docs/PITCH-QUICK-CARD.md`).

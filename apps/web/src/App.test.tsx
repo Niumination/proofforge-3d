@@ -98,6 +98,7 @@ describe("ProofForge stores & UI components", () => {
         <div>
           <SpecPanel
             onRun={() => {}}
+            onAutoDemo={() => {}}
             onExport={() => {}}
             onRedTeam={() => {}}
             onVoiceSubmit={() => {}}

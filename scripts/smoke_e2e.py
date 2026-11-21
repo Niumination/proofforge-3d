@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Live HTTP + SSE E2E smoke test covering Phase 1-3 endpoints against a running ProofForge 3D server."""
+"""Live HTTP + SSE E2E smoke test covering Phase 1-4 endpoints against a running ProofForge 3D server."""
 
 import argparse
 import json
@@ -46,6 +46,11 @@ def main() -> int:
         h_json = health.json()
         assert h_json["status"] == "ok"
         print(f"[SMOKE] /api/health OK: {h_json}")
+
+        scenarios_res = client.get("/api/forge/scenarios")
+        assert scenarios_res.status_code == 200
+        assert len(scenarios_res.json()["scenarios"]) == 3
+        print("[SMOKE] /api/forge/scenarios OK")
 
         if args.require_ui or h_json.get("static_ui_ready"):
             ui = client.get("/")
@@ -97,10 +102,31 @@ def main() -> int:
             cert_get = client.get(f"/api/forge/certificate/{ex_json['certificate_id']}")
             assert cert_get.status_code == 200
             assert cert_get.json()["certificate_digest_sha256"] == ex_json["certificate_digest"]
+
+            rep = client.get(f"/api/forge/report/{ex_json['certificate_id']}")
+            assert rep.status_code == 200
+            assert "UNSAT_PROVEN" in rep.text
+
             print(
                 f"[SMOKE] {scenario_id}: SAT@{exp_tick} -> PATCH -> UNSAT "
-                f"({exp_frames} frames, cert={ex_json['certificate_id']} OK)"
+                f"({exp_frames} frames, cert={ex_json['certificate_id']}, report OK)"
             )
+
+        # Verify Phase 4 parametric Z3 constraint override propagates end-to-end
+        param_run = client.post(
+            "/api/forge/run",
+            json={
+                "scenario_id": "drone_swarm",
+                "mode": "deterministic",
+                "custom_spec": "Enforce r_safe_m=2.2m on scenario drone_swarm",
+                "inject_initial_bug": True,
+            },
+        )
+        assert param_run.status_code == 200
+        param_events = parse_sse(client.get(f"/api/forge/stream/{param_run.json()['runId']}").text)
+        param_verifs = {p["phase"]: p for ev, p in param_events if ev == "VERIFICATION_RESULT"}
+        assert param_verifs["after"]["frames"][0]["constraints_overlay"][0]["radius"] == 2.2
+        print("[SMOKE] Phase 4 parametric Z3 r_safe_m=2.2m telemetry OK")
 
         rt = client.post("/api/forge/redteam", json={"scenario_id": "drone_swarm"})
         assert rt.status_code == 200 and rt.json()["all_blocked"] is True

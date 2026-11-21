@@ -2,6 +2,7 @@ import asyncio
 import json
 import re
 import uuid
+from collections import OrderedDict
 
 import httpx
 from fastapi import APIRouter, HTTPException
@@ -25,8 +26,38 @@ from apps.api.verifier.invariant_guard import compute_invariant_hash
 
 router = APIRouter()
 
-_runs: dict[str, dict] = {}
+MAX_STORED_RUNS = 128
+_runs: OrderedDict[str, dict] = OrderedDict()
 SUPPORTED_SCENARIOS = {"drone_swarm", "robot_arm", "spatial_tiling"}
+
+SCENARIO_CATALOG = [
+    {
+        "id": "drone_swarm",
+        "title": "Drone Swarm Collision",
+        "domain": "Robotics · Kinematics",
+        "invariant": "||p_A(t) - p_B(t)|| >= r_safe_m (default 1.50m)",
+        "default_params": {"r_safe_m": 1.5},
+    },
+    {
+        "id": "robot_arm",
+        "title": "3-DOF Robot Arm Torque",
+        "domain": "Robotics · QF_LIA Taylor",
+        "invariant": "|tau2| <= 8.0 N·m & y_eff >= 0.15m",
+        "default_params": {"payload_kg": 4.5, "tau_max_nm": 8.0},
+    },
+    {
+        "id": "spatial_tiling",
+        "title": "4×4×4 Spatial Deadlock",
+        "domain": "Concurrency · Int Grid",
+        "invariant": "Mutual Exclusion & Deadlock < max_wait_ticks (default 4)",
+        "default_params": {"max_wait_ticks": 4},
+    },
+]
+
+
+@router.get("/api/forge/scenarios")
+async def list_scenarios() -> dict:
+    return {"scenarios": SCENARIO_CATALOG}
 
 
 @router.post("/api/forge/run")
@@ -46,6 +77,8 @@ async def forge_run(request: ForgeRunRequest) -> dict:
     )
     run_id = f"run-{request.scenario_id}-{uuid.uuid4().hex[:8]}"
     _runs[run_id] = {"request": request.model_dump(), "pipeline": pipeline_out}
+    while len(_runs) > MAX_STORED_RUNS:
+        _runs.popitem(last=False)
     return {"runId": run_id}
 
 

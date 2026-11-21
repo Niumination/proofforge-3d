@@ -46,7 +46,7 @@ export default function App() {
     };
   }, []);
 
-  const onRun = async () => {
+  const executePipeline = async (autoShowcase = false) => {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -69,6 +69,26 @@ export default function App() {
         addEvent(ev.event, ev.data);
         if (ev.event === "STAGE_CHANGED") {
           setStage(String(ev.data.stage ?? "VERIFY"));
+          if (ev.data.stage === "COMPLETE" && autoShowcase) {
+            const st = useForgeStore.getState();
+            if (st.beforeFrames.length > 0) {
+              st.setViewMode("before");
+              st.setPlaying(true);
+              window.setTimeout(() => {
+                const cur = useForgeStore.getState();
+                if (cur.afterFrames.length > 0) {
+                  cur.setViewMode("after");
+                }
+              }, 2200);
+            }
+            const proven = st.afterResult ?? st.beforeResult;
+            if (proven) {
+              apiClient.exportProof(selectedScenario, proven).then((res) => {
+                setExportResponse(res);
+                addEvent("PROXY_AUDIT", res.proxy_audit);
+              }).catch(() => {});
+            }
+          }
         } else if (ev.event === "PATCH_DIFF") {
           setPatchDiff(String(ev.data.diff ?? ""));
         } else if (ev.event === "PROOF_CERTIFICATE") {
@@ -86,6 +106,9 @@ export default function App() {
       }
     }
   };
+
+  const onRun = () => executePipeline(false);
+  const onAutoDemo = () => executePipeline(true);
 
   const onRedTeam = async () => {
     setRedTeamBusy(true);
@@ -165,6 +188,7 @@ export default function App() {
         <aside className="w-80 shrink-0 border-r border-zinc-800 p-3 overflow-y-auto bg-zinc-950/70">
           <SpecPanel
             onRun={onRun}
+            onAutoDemo={onAutoDemo}
             onExport={onExport}
             onRedTeam={onRedTeam}
             onVoiceSubmit={onVoiceSubmit}

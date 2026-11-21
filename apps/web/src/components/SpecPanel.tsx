@@ -35,12 +35,13 @@ const SCENARIOS: Array<{
 
 interface Props {
   onRun: () => void;
+  onAutoDemo?: () => void;
   onExport: () => void;
   onRedTeam: () => void;
   onVoiceSubmit: (transcript: string) => void;
 }
 
-export function SpecPanel({ onRun, onExport, onRedTeam, onVoiceSubmit }: Props) {
+export function SpecPanel({ onRun, onAutoDemo, onExport, onRedTeam, onVoiceSubmit }: Props) {
   const {
     selectedScenario,
     mode,
@@ -267,6 +268,16 @@ export function SpecPanel({ onRun, onExport, onRedTeam, onVoiceSubmit }: Props) 
         >
           <Play className="w-3.5 h-3.5" />
           {status === "running" ? "Verifying with Z3..." : "Run ProofForge Pipeline"}
+        </button>
+
+        <button
+          type="button"
+          onClick={onAutoDemo ?? onRun}
+          disabled={status === "running"}
+          className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg border border-cyan-500/40 bg-cyan-950/30 hover:bg-cyan-950/50 disabled:opacity-50 text-cyan-300 font-semibold text-xs cursor-pointer"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          1-Click Stage Auto-Demo
         </button>
 
         <button
