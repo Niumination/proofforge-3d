@@ -116,3 +116,22 @@ class CredentialProxy:
 
 def get_certificate(cert_id: str) -> dict[str, Any] | None:
     return _CERTIFICATES.get(cert_id)
+
+
+def render_markdown_report(cert_id: str) -> str | None:
+    cert = _CERTIFICATES.get(cert_id)
+    if not cert:
+        return None
+    hooks_md = "\n".join(f"- `{h}`" for h in cert.get("hooks_enforced", []))
+    return (
+        f"# ProofForge 3D — Formal Verification & Security Audit Report\n\n"
+        f"- **Certificate ID:** `{cert['certificate_id']}`\n"
+        f"- **Issued (UTC):** `{cert['issued_at_utc']}`\n"
+        f"- **Scenario:** `{cert['scenario_id']}`\n"
+        f"- **Verification Status:** **{cert['verification_status']}**\n"
+        f"- **Locked Invariant SHA-256:** `{cert['invariant_sha256']}`\n"
+        f"- **Implementation SHA-256:** `{cert['impl_sha256']}`\n"
+        f"- **Certificate Digest SHA-256:** `{cert['certificate_digest_sha256']}`\n"
+        f"- **Credential Exposed to Agent:** `{cert['credential_exposed']}`\n\n"
+        f"## Enforced Protected Hooks\n{hooks_md}\n"
+    )

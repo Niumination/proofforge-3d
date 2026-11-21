@@ -1,7 +1,12 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import PlainTextResponse
 
 from apps.api.models.schemas import ProofExportRequest, ProofExportResponse
-from apps.api.security.credential_proxy import CredentialProxy, get_certificate
+from apps.api.security.credential_proxy import (
+    CredentialProxy,
+    get_certificate,
+    render_markdown_report,
+)
 
 router = APIRouter()
 
@@ -32,3 +37,15 @@ async def fetch_certificate(cert_id: str) -> dict:
     if not cert:
         raise HTTPException(status_code=404, detail="Certificate not found")
     return cert
+
+
+@router.get("/api/forge/report/{cert_id}")
+async def fetch_markdown_report(cert_id: str) -> PlainTextResponse:
+    report = render_markdown_report(cert_id)
+    if not report:
+        raise HTTPException(status_code=404, detail="Certificate report not found")
+    return PlainTextResponse(
+        content=report,
+        media_type="text/markdown",
+        headers={"Content-Disposition": f'attachment; filename="{cert_id}-audit.md"'},
+    )

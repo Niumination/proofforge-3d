@@ -1,4 +1,4 @@
-import { Award, FileCode2, ShieldCheck, ShieldX } from "lucide-react";
+import { Award, FileCode2, FileText, ShieldCheck, ShieldX } from "lucide-react";
 import { useForgeStore } from "../store/forgeStore";
 import type { AuditEvent, VerificationResult } from "../types/forge";
 
@@ -8,12 +8,36 @@ interface Props {
 }
 
 export function AuditPanel({ events, result }: Props) {
-  const { patchDiff, certificate, exportResponse, setDiffModalOpen, setCertModalOpen } =
-    useForgeStore();
+  const {
+    beforeResult,
+    afterResult,
+    patchDiff,
+    certificate,
+    exportResponse,
+    setDiffModalOpen,
+    setCertModalOpen,
+  } = useForgeStore();
   const isProven = result?.status === "UNSAT_PROVEN";
 
   return (
     <div className="space-y-3 text-xs">
+      {beforeResult && afterResult && (
+        <div className="rounded-lg border border-emerald-500/30 bg-emerald-950/15 p-2.5">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 mb-1">
+            Convergence Summary (Before → After)
+          </div>
+          <div className="mono text-[11px] flex items-center justify-between text-zinc-200">
+            <span className="text-red-300">
+              SAT @ tick {beforeResult.violated_tick ?? 0} ({beforeResult.solver_duration_ms}ms)
+            </span>
+            <span className="text-zinc-500">→</span>
+            <span className="text-emerald-300">
+              UNSAT ({afterResult.solver_duration_ms}ms)
+            </span>
+          </div>
+        </div>
+      )}
+
       <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-3">
         <div className="flex items-center justify-between mb-2">
           <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
@@ -64,14 +88,24 @@ export function AuditPanel({ events, result }: Props) {
         )}
 
         {certificate && (
-          <button
-            type="button"
-            onClick={() => setCertModalOpen(true)}
-            className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg border border-emerald-500/40 bg-emerald-950/30 hover:bg-emerald-950/50 text-emerald-300 font-semibold cursor-pointer"
-          >
-            <Award className="w-3.5 h-3.5" />
-            Inspect Signed Proof Certificate ({certificate.certificate_id})
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => setCertModalOpen(true)}
+              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg border border-emerald-500/40 bg-emerald-950/30 hover:bg-emerald-950/50 text-emerald-300 font-semibold cursor-pointer"
+            >
+              <Award className="w-3.5 h-3.5" />
+              Inspect Signed Proof Certificate ({certificate.certificate_id})
+            </button>
+            <a
+              href={`/api/forge/report/${encodeURIComponent(certificate.certificate_id)}`}
+              download={`${certificate.certificate_id}-audit.md`}
+              className="w-full flex items-center justify-center gap-2 py-1.5 px-3 rounded-lg border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 font-semibold"
+            >
+              <FileText className="w-3.5 h-3.5 text-cyan-400" />
+              Download Audit Report (.md)
+            </a>
+          </>
         )}
       </div>
 
