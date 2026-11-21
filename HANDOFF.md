@@ -4,11 +4,11 @@
 
 ## Status Terkini
 
-* **Active Phase:** Phase 3 — Judge-Ready Polish & Submission (`PF-027`..`PF-029`)
-* **Last Updated:** 2026-11-21 (Arena.ai Package 6 Final Polish)
+* **Active Phase:** Phase 3 COMPLETE (`PF-019`–`PF-027` verified) → Ready for `PF-028` & `PF-029`
+* **Last Updated:** 2026-11-21 (Arena.ai Package 7 Final Polish & UI Render Tests)
 * **Last Actor:** Arena.ai
 * **Repo Target:** `https://github.com/Niumination/proofforge-3d`
-* **Active Task:** Apply `pkg6`, commit + push ke `main`, jalankan `bash scripts/vps-stage.sh`, rekam video cadangan & submit (`PF-028`–`PF-029`)
+* **Active Task:** Apply `pkg7`, push ke `main`, rekam video cadangan 120 detik (`PF-028`), dan presentasi panggung (`PF-029`)
 
 ---
 
@@ -16,17 +16,16 @@
 
 ```text
 [2026-11-21 | Arena.ai]
-- What Changed (Package 6 — Live Flow Polish & Judge-Ready README):
-  1. Diperbarui `apps/api/agents/closed_loop.py`: mode `live_gemini` otomatis membaca `scenarios/<id>/spec.md` jika `custom_spec` kosong, dan override parameter suara/teks diteruskan ke `result.note` + `AGENT_LOG`.
-  2. Diperbarui `apps/web/src/components/SpecPanel.tsx`: ditambah 3 tombol preset cepat 1-klik di bawah Voice / Natural Constraint untuk demo panggung bebas-typo.
-  3. Diperbarui `README.md` agar siap dinilai juri (ringkasan arsitektur, quickstart, tabel 3 skenario Z3, status verifikasi).
-  4. Ditambahkan `apps/api/tests/test_pkg6_live_flow.py` (2 unit test baru).
+- What Changed (Package 7 — Final UI Polish, jsdom Render Test & Pitch Quick-Card):
+  1. Membersihkan label internal `(PF-026)` dari UI `SpecPanel.tsx`.
+  2. Menambahkan unit test mount React 19 (`jsdom`) pada `apps/web/src/App.test.tsx` untuk memverifikasi `SpecPanel`, `TimeScrubber`, `AuditPanel`, `PatchDiffModal`, dan `ProofCertModal`.
+  3. Menambahkan `docs/PITCH-QUICK-CARD.md` (30-second hook + 4 jawaban Q&A juri Google DeepMind) serta sinkronisasi penuh `BACKLOG.md` (`PF-019`..`PF-027` `[x]`).
 - Tests Passed (Arena Sandbox):
   - `pytest apps/api -v` -> 18 passed
   - `ruff check apps/api scenarios sandbox-agent scripts` -> 0 errors
   - `tsc -b --noEmit` -> 0 errors
   - `vite build` -> built cleanly
-  - `vitest run` -> 2 passed
+  - `vitest run` -> 3 passed (termasuk React 19 UI component mount)
   - Live `uvicorn` + `scripts/smoke_e2e.py --require-ui` -> SMOKE_E2E_OK
 - Next Task ID: PF-028 (backup video + portal submission), PF-029 (live pitch).
 - Blockers: none.

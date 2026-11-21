@@ -1,8 +1,15 @@
+import { act } from "react";
+import { createRoot } from "react-dom/client";
 import { describe, expect, it } from "vitest";
-import { useForgeStore } from "./store/forgeStore";
+import { AuditPanel } from "./components/AuditPanel";
+import { PatchDiffModal } from "./components/PatchDiffModal";
+import { ProofCertModal } from "./components/ProofCertModal";
+import { SpecPanel } from "./components/SpecPanel";
+import { TimeScrubber } from "./components/TimeScrubber";
 import { useAuditStore } from "./store/auditStore";
+import { useForgeStore } from "./store/forgeStore";
 
-describe("ProofForge stores", () => {
+describe("ProofForge stores & UI components", () => {
   it("switches scenarios, tracks activeTick, and toggles before/after frames", () => {
     const s = useForgeStore.getState();
     s.setScenario("robot_arm");
@@ -72,5 +79,51 @@ describe("ProofForge stores", () => {
     useAuditStore.getState().addEvent("HOOK_AUDIT", { action: "BLOCKED" });
     expect(useAuditStore.getState().events).toHaveLength(1);
     expect(useAuditStore.getState().events[0].payload.action).toBe("BLOCKED");
+  });
+
+  it("mounts Cockpit UI panels cleanly in jsdom without stray backlog markers", () => {
+    (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
+      true;
+    const s = useForgeStore.getState();
+    s.setPatchDiff("--- a\n+++ b\n@@ -1 +1 @@\n-bad\n+good");
+    s.setDiffModalOpen(true);
+    s.setCertModalOpen(true);
+
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+
+    act(() => {
+      root.render(
+        <div>
+          <SpecPanel
+            onRun={() => {}}
+            onExport={() => {}}
+            onRedTeam={() => {}}
+            onVoiceSubmit={() => {}}
+          />
+          <TimeScrubber frames={useForgeStore.getState().afterFrames} />
+          <AuditPanel
+            events={useAuditStore.getState().events}
+            result={useForgeStore.getState().afterResult}
+          />
+          <PatchDiffModal />
+          <ProofCertModal />
+        </div>
+      );
+    });
+
+    const html = container.innerHTML;
+    expect(html).toContain("Run ProofForge Pipeline");
+    expect(html).toContain("Simulate Prompt Injection Attack");
+    expect(html).toContain("Export Proof via Credential Proxy");
+    expect(html).toContain("Inspect Surgical Patch Diff");
+    expect(html).toContain("Signed UNSAT Proof Certificate");
+    expect(html).not.toContain("PF-026");
+
+    act(() => {
+      root.unmount();
+    });
+    container.remove();
   });
 });

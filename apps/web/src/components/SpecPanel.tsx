@@ -168,7 +168,7 @@ export function SpecPanel({ onRun, onExport, onRedTeam, onVoiceSubmit }: Props) 
 
       <div className="space-y-1.5">
         <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-          Voice / Natural Constraint (`PF-026`)
+          Voice / Natural Constraint
         </div>
         <div className="flex gap-1.5">
           <input
