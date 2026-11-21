@@ -7,8 +7,8 @@ Jalankan di `~/projects/proofforge-3d` (terisolasi dari OMB/9Router):
 ```bash
 cd ~/projects/proofforge-3d
 git fetch origin
-git checkout feat/pf-005-phase1
-git pull --ff-only origin feat/pf-005-phase1
+git checkout main
+git pull --ff-only origin main
 
 bash scripts/vps-stage.sh
 ```
@@ -40,16 +40,8 @@ bash scripts/demo-offline.sh
 
 | Waktu | Aksi di Layar Cockpit | Poin Narasi Juri |
 | :--- | :--- | :--- |
-| **0:00 – 0:20** | Pilih **Drone Swarm Collision**, pastikan kedua checkbox ON, klik **Run ProofForge Pipeline**. | *"AI coding agents generate code that looks fine until an edge case hits. Watch Z3 catch a head-on collision before runtime."* |
-| **0:20 – 0:45** | Sorot panel kanan (`HOOK_AUDIT: BLOCKED`) lalu viewport flash merah pada **tick 42 (t = 4.2s)**. Klik **Focus Violation**. | *"First, our Protected Hook blocks a simulated reward-hacking attempt to weaken `R_safe`. Then Z3 finds an exact SAT counterexample at 4.2 seconds—0.38m separation."* |
-| **0:45 – 1:15** | Klik **Inspect Surgical Patch Diff**, lalu klik toggle **AFTER · PATCHED (UNSAT)** dan tekan **Play**. | *"ProofForge patches only the stopping-envelope controller—never the locked invariant—and Z3 proves `UNSAT` across all speeds and latencies."* |
-| **1:15 – 1:40** | Pindah cepat ke **3-DOF Robot Arm** (atau **4×4×4 Spatial Deadlock**), lalu klik **Export Proof via Credential Proxy**. | *"The exact same formal-to-3D loop works for 3-DOF torque limits and 3D spatial deadlocks, exporting a signed proof with zero token exposure."* |
-| **1:40 – 2:00** | Tunjukkan `PROXY_AUDIT` (`credential_exposed: false`) & closing statement. | *"Code isn't done when it compiles—it's done when Z3 proves `UNSAT`."* |
-
----
-
-## 4. Checklist Transisi ke Phase 3 (Hackathon Day · Sabtu 21 Nov 2026 · 09:00 EST)
-
-- [ ] Klaim API key Google DeepMind di venue, isi `.env` lokal (`GEMINI_API_KEY`, `PROOFFORGE_MODE=live_gemini`).
-- [ ] Pastikan `.env` tidak pernah masuk `git status` (`.gitignore` sudah memblokir).
-- [ ] Mulai `PF-020` (`argon_synth.py`) dan `PF-021` (`managed_runner.py` untuk `antigravity-preview-09-2026`).
+| **0:00 – 0:25** | Pilih **Drone Swarm Collision**, klik **1-Click Stage Auto-Demo**. | *"AI coding agents generate code that looks fine until an edge case hits. Watch Z3 catch a head-on collision at 4.2s with 3D velocity vectors and shockwaves, then auto-patch to `UNSAT`."* |
+| **0:25 – 0:50** | Tekan `[B]` untuk kembali ke **BEFORE**, tekan `[F]` (**Focus Violation**), lalu buka **Inspect Surgical Patch Diff** (`Copy Diff`). | *"First, our Protected Hook blocks reward-hacking attempts to weaken `R_safe`. Then Z3 pinpoints the exact SAT frame at 0.38m separation and patches only the controller—never the locked invariant."* |
+| **0:50 – 1:15** | Klik **Simulate Prompt Injection Attack**, lalu klik **Download Audit Report (.md)** & **Inspect Signed Proof Certificate**. | *"Every run is guarded by Managed Agents Protected Hooks and a Credential Proxy that issues a SHA-256 Proof Certificate and Markdown Audit Report with zero token exposure."* |
+| **1:15 – 1:45** | Klik preset **"Limit robot arm payload to 3.0 kg"** → **Run ProofForge Pipeline** (3D articulated robot arm + torque overload halo). | *"Voice constraints dynamically re-parameterize both the Z3 solver and the 3D safety envelope across drones, robot arms, and 4×4×4 spatial grids."* |
+| **1:45 – 2:00** | Tunjukkan `PROXY_AUDIT` (`credential_exposed: false`) & closing statement. | *"Code isn't done when it compiles—it's done when Z3 proves `UNSAT`."* |
