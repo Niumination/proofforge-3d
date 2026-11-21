@@ -1,4 +1,4 @@
-import { Download, X } from "lucide-react";
+import { Download, FileText, X } from "lucide-react";
 import { useForgeStore } from "../store/forgeStore";
 
 export function ProofCertModal() {
@@ -24,6 +24,14 @@ export function ProofCertModal() {
             Signed UNSAT Proof Certificate · {certificate.certificate_id}
           </span>
           <div className="flex items-center gap-2">
+            <a
+              href={`/api/forge/report/${encodeURIComponent(certificate.certificate_id)}`}
+              download={`${certificate.certificate_id}-audit.md`}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-semibold"
+            >
+              <FileText className="w-3.5 h-3.5 text-cyan-400" />
+              Download Audit Report (.md)
+            </a>
             <button
               type="button"
               onClick={downloadJson}

@@ -11,7 +11,14 @@ import type {
 export class ApiClient {
   private baseUrl = "/api";
 
-  async health(): Promise<{ status: string; mode: string; static_ui_ready?: boolean }> {
+  async health(): Promise<{
+    status: string;
+    mode: string;
+    static_ui_ready?: boolean;
+    gemini_key_configured?: boolean;
+    frontier_model?: string;
+    managed_agent_id?: string;
+  }> {
     const res = await fetch(`${this.baseUrl}/health`);
     if (!res.ok) throw new Error(`GET /api/health failed: ${res.status}`);
     return res.json();

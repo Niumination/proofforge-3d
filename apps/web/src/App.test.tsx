@@ -120,6 +120,8 @@ describe("ProofForge stores & UI components", () => {
     expect(html).toContain("Export Proof via Credential Proxy");
     expect(html).toContain("Inspect Surgical Patch Diff");
     expect(html).toContain("Signed UNSAT Proof Certificate");
+    expect(html).toContain("Copy Diff");
+    expect(html).toContain("Download Audit Report (.md)");
     expect(html).not.toContain("PF-026");
 
     act(() => {

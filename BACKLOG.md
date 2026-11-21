@@ -40,3 +40,7 @@ Pelacakan tugas lintas agen (**Arena.ai**, **Hermes Agent @ LightVela VPS**, **O
 - **PF-031 (pkg9):** Downloadable Formal Audit Report (`GET /api/forge/report/{cert_id}` Markdown) + Before/After Safety Convergence Delta card in `AuditPanel.tsx` — **Done**
 - **PF-032 (pkg10):** 3D Cockpit Visual Upgrade (drone velocity `ArrowHelper` vectors, midpoint shockwave rings, 3D articulated cylinder robot arm links + torque breach halo, spatial deadlock cycle arrows, live breach tick badge) — **Done**
 - **PF-033 (pkg11):** Bounded `_runs` `OrderedDict` store, `GET /api/forge/scenarios`, **1-Click Stage Auto-Demo** showcase button, upgraded `scripts/smoke_e2e.py` — **Done**
+
+### Phase 5 — Final-Mile Stage Readiness (`pkg12`–`pkg13`)
+- **PF-034 (pkg12):** `/api/health` readiness metadata (`gemini_key_configured`, `frontier_model`, `managed_agent_id`), Header readiness pill, Stage Keyboard Shortcuts (`Space`/`F`/`B`/`Esc`), `Copy Diff` & in-modal `Download Audit Report (.md)` — **Done**
+- **PF-035 (pkg13):** Full documentation sync (`README.md`, `PITCH-QUICK-CARD.md`, `SUBMISSION-PORTAL-KIT.md`, `BACKLOG.md`, `HANDOFF.md`) aligned with Phase 4–5 features — **Done**

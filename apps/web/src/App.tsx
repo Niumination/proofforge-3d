@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForgeStore } from "./store/forgeStore";
 import { useAuditStore } from "./store/auditStore";
 import { apiClient } from "./lib/apiClient";
@@ -39,9 +39,37 @@ export default function App() {
 
   const { events, addEvent, clear } = useAuditStore();
   const abortRef = useRef<AbortController | null>(null);
+  const [geminiReady, setGeminiReady] = useState<boolean | null>(null);
 
   useEffect(() => {
+    apiClient
+      .health()
+      .then((h) => setGeminiReady(Boolean(h.gemini_key_configured)))
+      .catch(() => setGeminiReady(null));
+  }, []);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+      const st = useForgeStore.getState();
+      const activeFrames = st.viewMode === "before" ? st.beforeFrames : st.afterFrames;
+      if (e.code === "Space" && activeFrames.length > 0) {
+        e.preventDefault();
+        st.setPlaying(!st.playing);
+      } else if (e.key === "f" || e.key === "F") {
+        st.triggerFocusViolation();
+      } else if ((e.key === "b" || e.key === "B") && st.beforeFrames.length > 0 && st.afterFrames.length > 0) {
+        st.setViewMode(st.viewMode === "before" ? "after" : "before");
+      } else if (e.key === "Escape") {
+        st.setDiffModalOpen(false);
+        st.setCertModalOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
     return () => {
+      window.removeEventListener("keydown", onKeyDown);
       abortRef.current?.abort();
     };
   }, []);
@@ -83,10 +111,13 @@ export default function App() {
             }
             const proven = st.afterResult ?? st.beforeResult;
             if (proven) {
-              apiClient.exportProof(selectedScenario, proven).then((res) => {
-                setExportResponse(res);
-                addEvent("PROXY_AUDIT", res.proxy_audit);
-              }).catch(() => {});
+              apiClient
+                .exportProof(selectedScenario, proven)
+                .then((res) => {
+                  setExportResponse(res);
+                  addEvent("PROXY_AUDIT", res.proxy_audit);
+                })
+                .catch(() => {});
             }
           }
         } else if (ev.event === "PATCH_DIFF") {
@@ -164,7 +195,19 @@ export default function App() {
         <span className="ml-3 text-xs font-normal text-cyan-400">
           Self-Verifying Systems Compiler
         </span>
-        <div className="ml-auto flex items-center gap-3 text-xs font-normal">
+        <span className="hidden lg:inline ml-4 text-[10px] font-normal mono text-zinc-500">
+          Hotkeys: [Space] Play · [F] Focus · [B] Before/After · [Esc] Close
+        </span>
+        <div className="ml-auto flex items-center gap-2 text-xs font-normal">
+          {geminiReady !== null && (
+            <span
+              className={`mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 ${
+                geminiReady ? "text-cyan-300" : "text-zinc-400"
+              }`}
+            >
+              {geminiReady ? "Z3 + Gemini Key Ready" : "Offline Z3 Ready"}
+            </span>
+          )}
           <span className="mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
             stage: {stage}
           </span>

@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from apps.api.config import settings
 from apps.api.routes import export, forge
 
-app = FastAPI(title="ProofForge 3D Orchestrator", version="0.2.0")
+app = FastAPI(title="ProofForge 3D Orchestrator", version="0.3.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -29,6 +29,11 @@ async def health() -> dict:
         "status": "ok",
         "mode": settings.proofforge_mode,
         "static_ui_ready": settings.serve_static and dist_index.is_file(),
+        "gemini_key_configured": bool(settings.gemini_api_key.strip()),
+        "frontier_model": settings.gemini_frontier_model,
+        "fast_model": settings.gemini_fast_model,
+        "managed_agent_id": settings.gemini_managed_agent_id,
+        "scenarios_count": len(forge.SUPPORTED_SCENARIOS),
     }
 
 
