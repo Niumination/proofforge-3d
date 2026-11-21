@@ -5,51 +5,66 @@
 
 [![Target Event](https://img.shields.io/badge/Event-Gemini%204%20NYC%20Hackathon-4285F4)](#)
 [![Track](https://img.shields.io/badge/Tracks-Advanced%20Reasoning%20%7C%20Visual%20Coding%20%7C%20Managed%20Agents-34A853)](#)
-[![Status](https://img.shields.io/badge/Phase-0%20Documentation%20%26%20Architecture-FBBC05)](#)
+[![Status](https://img.shields.io/badge/Build-Verified%20Phase%201--3%20Ready-00C853)](#)
 
 ---
 
-## 1. Visi & Tesis Utama
+## 1. Visi & Arsitektur Closed-Loop
 
-AI coding agent saat ini pandai membuat kode yang **"kelihatannya jalan"**, namun sering gagal pada *edge case* fisika, konkurensi, atau batasan keamanan kritis.
+AI coding agents write code that compiles and looks right—until edge-case physics, actuator torque limits, or concurrency deadlocks fail catastrophically. **ProofForge 3D** closes that gap:
 
-**ProofForge 3D** membalik paradigma itu:
-1. **Co-Generation (`gemini-4-argon`)**: Dari satu spesifikasi sistem, model menghasilkan tiga artefak terikat secara bersamaan — **(a) kode sistem**, **(b) invarian formal Z3 SMT**, dan **(c) adapter adegan 3D**.
-2. **Formal Proof & Counterexample Sandbox (`antigravity-preview-09-2026`)**: Google Managed Agents menjalankan Z3 solver dan property fuzzer di Linux sandbox terkelola. Jika ada celah, Z3 menghasilkan *counterexample trace* konkret.
-3. **3D Failure Replay & Surgical Self-Patch**: Antarmuka 3D memutar ulang tepat pada milidetik pelanggaran terjadi (tabrakan drone, torsi sendi robot melewati batas, atau *spatial deadlock*), lalu agen melakukan *surgical patch* pada kode hingga Z3 membuktikan `UNSAT` (100% invariant terpenuhi).
-4. **Anti-Cheat Protected Hooks & Credential Proxy**: Agen dilarang memodifikasi atau memperlemah file invarian (dikunci oleh **Protected Hooks** + hash guard), dan integrasi eksternal (seperti ekspor laporan/PR terverifikasi) berjalan lewat **Credential Proxy** tanpa membocorkan token ke konteks agen.
+1. **Co-Generation (`gemini-4-argon`)**: Synthesizes **(a) system implementation**, **(b) immutable Z3 SMT safety invariants (`invariants_locked.py`)**, and **(c) 3D trajectory adapter** (`apps/api/agents/argon_synth.py`).
+2. **Managed Agents Sandbox + Protected Hooks (`antigravity-preview-09-2026`)**: Runs Z3 inside an isolated sandbox (`apps/api/agents/managed_runner.py`). **Protected Hooks** (`apps/api/security/protected_hooks.py`) block invariant SHA-256 tampering, out-of-scope file writes, prompt-injection attacks, and secret leaks.
+3. **3D Counterexample Replay & Surgical Self-Patch**: On `SAT_VIOLATION`, the Three.js Cockpit replays the exact violation millisecond (drone collision at `t=4.2s`, 3-DOF arm torque breach at `tick 28`, or `4×4×4` spatial deadlock at `tick 18`), then iteratively patches the controller until Z3 proves **`UNSAT_PROVEN`**.
+4. **Credential Proxy & Signed Proof Certificates**: `apps/api/security/credential_proxy.py` issues a verifiable SHA-256 Proof Certificate (`GET /api/forge/certificate/{id}`) and proxies GitHub proof export with `credential_exposed: false` and `redacted: true`.
 
 ---
 
-## 2. Keselarasan dengan Gemini 4 NYC Hackathon
+## 2. Quickstart (Single-Process Offline Demo & Verification)
 
-| Target Hadiah | Bagaimana ProofForge 3D Menjawabnya |
+```bash
+# 1. Setup backend + frontend
+python3 -m venv .venv
+.venv/bin/pip install -e "./apps/api[dev]"
+pnpm --dir apps/web install   # atau: npm --prefix apps/web install
+
+# 2. Full verification gate (tsc + vite build + vitest + ruff + pytest)
+bash scripts/verify.sh
+
+# 3. Run single-process demo (serves built Three.js UI + FastAPI/SSE at http://127.0.0.1:8000)
+bash scripts/demo-offline.sh
+
+# 4. Run live TCP/HTTP/SSE E2E smoke test against running server
+.venv/bin/python scripts/smoke_e2e.py --base-url http://127.0.0.1:8000 --require-ui
+```
+
+Untuk mengaktifkan mode live Gemini di Hari-H (`PROOFFORGE_MODE=live_gemini`):
+
+```bash
+cp .env.example .env
+# Set GEMINI_API_KEY=... dan PROOFFORGE_MODE=live_gemini di .env (jangan commit .env)
+.venv/bin/python scripts/preflight_gemini.py
+```
+
+---
+
+## 3. Skenario Verifikasi 3D
+
+| Skenario | Domain Z3 | Pelanggaran Awal (`SAT`) | Bukti Aman (`UNSAT`) |
+| :--- | :--- | :--- | :--- |
+| `drone_swarm` | Quadratic kinematics (tanpa `sqrt`) | Head-on gap `0.38m < 1.50m` @ `tick 42` (`4.2s`) | Dynamic stopping-envelope braking (`101 frames`) |
+| `robot_arm` | Pure `QF_LIA` Taylor linearization | Elbow torque `|tau2| > 8.0 N·m` @ `tick 28` | Clamped reach & payload envelope (`41 frames`) |
+| `spatial_tiling` | `Int` grid `4×4×4` mutual exclusion | Circular wait deadlock `W1↔W2` @ `tick 18` | Canonical lexicographic lock order (`21 frames`) |
+
+---
+
+## 4. Peta Dokumentasi
+
+| Dokumen | Fungsi |
 | :--- | :--- |
-| **Main Track ($7,500 / $5,000 / $2,500)** | Menggabungkan **Advanced Reasoning** (pembuktian formal Z3 + *counterexample-guided synthesis*), **Visual Coding** (Three.js 3D state-space debugger), dan kapasitas konteks/output panjang **Gemini 4 Argon**. |
-| **Best Use of Managed Agents ($5,000)** | Memanfaatkan `antigravity-preview-09-2026` sebagai *verification sandbox* persisten dengan `AGENTS.md`/`SKILL.md`, **Protected Hooks** (mengunci integritas invarian formal), dan **Credential Proxy** (isolasi secret saat publish hasil verifikasi). |
-
----
-
-## 3. Peta Dokumen Repository (Benang Merah Pembangunan)
-
-Seluruh rancangan dikunci di dokumen berikut sebelum menulis satu baris kode pun:
-
-| Dokumen | Fungsi Utama |
-| :--- | :--- |
-| [`AGENTS.md`](./AGENTS.md) | Kontrak aturan keras & pembagian peran **Arena.ai**, **Hermes Agent (LightVela VPS)**, **OpenCode**, dan **Gemini 4 Managed Agents**. |
-| [`ARCHITECTURE.md`](./ARCHITECTURE.md) | Arsitektur teknis 4-lapis, alur data *closed-loop*, kontrak JSON/SSE, model keamanan Hooks & Proxy. |
-| [`BACKLOG.md`](./BACKLOG.md) | Peta kerja bertahap (`Phase 0` s.d. `Phase 3`), daftar tugas `PF-001`–`PF-032`, dan *Definition of Done*. |
-| [`HANDOFF.md`](./HANDOFF.md) | Papan estafet hidup antar-agen agar pekerjaan tidak bertabrakan saat berpindah dari VPS ke lokal ke lokasi hackathon. |
-| [`docs/BRAINSTORMING-AND-DEMO-SCENARIOS.md`](./docs/BRAINSTORMING-AND-DEMO-SCENARIOS.md) | 3 skenario demo 3D yang paling dramatis, *red-team edge cases*, dan matriks fallback. |
-| [`docs/SCAFFOLD-BLUEPRINT.md`](./docs/SCAFFOLD-BLUEPRINT.md) | Struktur folder lengkap, fungsi setiap file yang akan dibuat nanti, kebutuhan paket, dan kontrak `.env`. |
-| [`docs/MULTI-AGENT-WORKFLOW.md`](./docs/MULTI-AGENT-WORKFLOW.md) | Playbook operasional lintas platform (Arena.ai ↔ Hermes LightVela VPS ↔ OpenCode ↔ Cerebral Valley) beserta prompt handoff siap pakai. |
-| [`docs/HACKATHON-PITCH-AND-JUDGING.md`](./docs/HACKATHON-PITCH-AND-JUDGING.md) | Naskah demo 2 menit detik-per-detik dan antisipasi pertanyaan juri Google DeepMind. |
-| [`docs/GITHUB-SETUP.md`](./docs/GITHUB-SETUP.md) | Panduan inisialisasi repo GitHub baru (`Niumination/proofforge-3d`) dan sinkronisasi awal ke VPS LightVela. |
-
----
-
-## 4. Batasan Kepatuhan Hackathon (Pre-Event vs Hari-H)
-
-Untuk menjaga kepatuhan aturan hackathon (*"something built at the hackathon"*):
-* **Sebelum 21 Nov 2026 (Phase 0–2):** Hanya menyiapkan dokumentasi, arsitektur, kerangka UI non-AI umum (layout dashboard, viewport Three.js kosong, runner Z3 lokal dasar), serta kesiapan infrastruktur tracking di GitHub & LightVela VPS.
-* **Hari-H 21 Nov 2026 (Phase 3):** Klaim kredit API di venue, membangun integrasi inti **Gemini 4 Argon**, konfigurasi **Managed Agents (`antigravity-preview-09-2026`)**, implementasi **Protected Hooks & Credential Proxy**, pengisian 3 skenario pembuktian 3D, pengujian E2E, dan demo final.
+| [`ARCHITECTURE.md`](./ARCHITECTURE.md) | Arsitektur 4-lapis, kontrak JSON/SSE, model keamanan Hooks & Proxy |
+| [`docs/Z3-SCENARIO-MATH-SPECS.md`](./docs/Z3-SCENARIO-MATH-SPECS.md) | Spesifikasi matematika Z3 eksak untuk 3 skenario |
+| [`docs/PREFLIGHT-CHECKLIST-NYC.md`](./docs/PREFLIGHT-CHECKLIST-NYC.md) | Runbook VPS staging (`--protocol http2`) & dry-run pitch 120 detik |
+| [`docs/SUBMISSION-PORTAL-KIT.md`](./docs/SUBMISSION-PORTAL-KIT.md) | Isian portal Cerebral Valley & shotlist video cadangan |
+| [`docs/HACKATHON-DAY-RUNBOOK.md`](./docs/HACKATHON-DAY-RUNBOOK.md) | Checklist pagi Hari-H & alur demo panggung |
+| [`BACKLOG.md`](./BACKLOG.md) · [`HANDOFF.md`](./HANDOFF.md) | Tracking progres & state estafet antar agen |

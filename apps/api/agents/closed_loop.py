@@ -1,6 +1,8 @@
 """Closed-loop self-patching orchestrator (`PF-024`) with live Gemini 4 Argon + deterministic fallback."""
 
 import difflib
+import re
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -17,6 +19,8 @@ from apps.api.security.protected_hooks import (
 from apps.api.verifier.dynamic_runner import execute_bundle
 from apps.api.verifier.invariant_guard import compute_invariant_hash
 
+REPO_ROOT = Path(__file__).resolve().parents[3]
+
 
 def _unified_diff(old_code: str, new_code: str) -> str:
     return "".join(
@@ -27,6 +31,18 @@ def _unified_diff(old_code: str, new_code: str) -> str:
             tofile="system_impl_after.py",
         )
     )
+
+
+def _load_scenario_spec(scenario_id: str) -> str:
+    spec_path = REPO_ROOT / "scenarios" / scenario_id / "spec.md"
+    return spec_path.read_text(encoding="utf-8") if spec_path.is_file() else scenario_id
+
+
+def _extract_override_note(custom_spec: str | None) -> str | None:
+    if not custom_spec:
+        return None
+    m = re.search(r"([a-zA-Z_]+)\s*=\s*(\d+(?:\.\d+)?\s*[a-zA-Z·]*)", custom_spec)
+    return f"Active constraint override: {m.group(1)}={m.group(2)}" if m else None
 
 
 class ClosedLoopOrchestrator:
@@ -60,12 +76,15 @@ class ClosedLoopOrchestrator:
         elif custom_spec:
             hook_events.extend(detect_prompt_injection(custom_spec))
 
-        use_live = mode == "live_gemini" and bool(custom_spec and custom_spec.strip())
-        if use_live and (self.argon is not None or settings.gemini_api_key):
+        effective_spec = custom_spec.strip() if custom_spec and custom_spec.strip() else ""
+        if mode == "live_gemini" and not effective_spec:
+            effective_spec = _load_scenario_spec(scenario_id)
+
+        if mode == "live_gemini" and (self.argon is not None or settings.gemini_api_key):
             try:
                 return self._run_live_custom_spec(
                     scenario_id=scenario_id,
-                    custom_spec=custom_spec or "",
+                    custom_spec=effective_spec,
                     inject_initial_bug=inject_initial_bug,
                     max_iterations=max_iterations,
                     hook_events=hook_events,
@@ -108,14 +127,18 @@ class ClosedLoopOrchestrator:
                 ),
             }
         ]
-        if custom_spec:
+        override_note = _extract_override_note(custom_spec)
+        if override_note:
             out["agent_logs"].append(
                 {
                     "source": "constraint-parser",
                     "level": "info",
-                    "message": redact_secrets(f"Applied constraint context: {custom_spec[:120]}"),
+                    "message": redact_secrets(override_note),
                 }
             )
+            last_res = out["iterations"][-1]["result"]
+            prev_note = last_res.get("note") or ""
+            last_res["note"] = f"{prev_note} · {override_note}".strip(" ·")
 
         final_res = out["iterations"][-1]["result"]
         if final_res.get("status") == "UNSAT_PROVEN":

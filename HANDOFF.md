@@ -4,11 +4,11 @@
 
 ## Status Terkini
 
-* **Active Phase:** Phase 3 — Complete 5-Package Implementation & Submission Kit (`PF-019`..`PF-029`)
-* **Last Updated:** 2026-11-21 (Arena.ai Package 5 Polish & Submission Kit)
+* **Active Phase:** Phase 3 — Judge-Ready Polish & Submission (`PF-027`..`PF-029`)
+* **Last Updated:** 2026-11-21 (Arena.ai Package 6 Final Polish)
 * **Last Actor:** Arena.ai
 * **Repo Target:** `https://github.com/Niumination/proofforge-3d`
-* **Active Task:** Push `pkg1`..`pkg5` ke `main`, jalankan `bash scripts/vps-stage.sh`, rekam backup video & submit (`PF-028`–`PF-029`)
+* **Active Task:** Apply `pkg6`, commit + push ke `main`, jalankan `bash scripts/vps-stage.sh`, rekam video cadangan & submit (`PF-028`–`PF-029`)
 
 ---
 
@@ -16,17 +16,18 @@
 
 ```text
 [2026-11-21 | Arena.ai]
-- What Changed (Package 5 — Polish & Submission Kit):
-  1. Ditambahkan `ArgonSynth` compatibility alias & `parse_voice_constraint_gemini` (`gemini-3.8-flash`) di `apps/api/agents/argon_synth.py` + `apps/api/routes/forge.py`.
-  2. Diperluas `scripts/smoke_e2e.py` untuk memverifikasi seluruh endpoint Phase 1–3 secara live (`/`, `/api/health`, 3 skenario, `PROOF_CERTIFICATE`, `/api/forge/certificate/{id}`, `/api/forge/redteam`, `/api/forge/voice-constraint`).
-  3. Ditambahkan `docs/SUBMISSION-PORTAL-KIT.md` (isian portal Cerebral Valley + shotlist video cadangan 120 detik) & `apps/api/tests/test_pkg5_submission.py`.
+- What Changed (Package 6 — Live Flow Polish & Judge-Ready README):
+  1. Diperbarui `apps/api/agents/closed_loop.py`: mode `live_gemini` otomatis membaca `scenarios/<id>/spec.md` jika `custom_spec` kosong, dan override parameter suara/teks diteruskan ke `result.note` + `AGENT_LOG`.
+  2. Diperbarui `apps/web/src/components/SpecPanel.tsx`: ditambah 3 tombol preset cepat 1-klik di bawah Voice / Natural Constraint untuk demo panggung bebas-typo.
+  3. Diperbarui `README.md` agar siap dinilai juri (ringkasan arsitektur, quickstart, tabel 3 skenario Z3, status verifikasi).
+  4. Ditambahkan `apps/api/tests/test_pkg6_live_flow.py` (2 unit test baru).
 - Tests Passed (Arena Sandbox):
-  - `pytest apps/api -v` -> 16 passed
+  - `pytest apps/api -v` -> 18 passed
   - `ruff check apps/api scenarios sandbox-agent scripts` -> 0 errors
   - `tsc -b --noEmit` -> 0 errors
   - `vite build` -> built cleanly
   - `vitest run` -> 2 passed
-  - Live `uvicorn` + upgraded `scripts/smoke_e2e.py --require-ui` -> SMOKE_E2E_OK
-- Next Task ID: Push ke origin/main, PF-028 (backup video + portal submission), PF-029 (live pitch).
+  - Live `uvicorn` + `scripts/smoke_e2e.py --require-ui` -> SMOKE_E2E_OK
+- Next Task ID: PF-028 (backup video + portal submission), PF-029 (live pitch).
 - Blockers: none.
 ```

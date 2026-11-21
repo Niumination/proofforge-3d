@@ -198,6 +198,25 @@ export function SpecPanel({ onRun, onExport, onRedTeam, onVoiceSubmit }: Props) 
             Apply
           </button>
         </div>
+        <div className="flex flex-wrap gap-1">
+          {[
+            "Set drone separation to 2.2 m",
+            "Limit robot arm payload to 3.0 kg",
+            "Limit spatial deadlock wait to 2 ticks",
+          ].map((preset) => (
+            <button
+              key={preset}
+              type="button"
+              onClick={() => {
+                setVoiceTranscript(preset);
+                onVoiceSubmit(preset);
+              }}
+              className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 hover:border-cyan-500/40 text-[10px] text-zinc-400 hover:text-cyan-300 cursor-pointer"
+            >
+              {preset}
+            </button>
+          ))}
+        </div>
         <textarea
           rows={2}
           value={customSpec}
