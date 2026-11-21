@@ -32,7 +32,7 @@ Pelacakan tugas lintas agen (**Arena.ai**, **Hermes Agent @ LightVela VPS**, **O
 | `PF-025` | Red-Team **Simulate Prompt Injection Attack** API + tombol UI | Pkg 3+4 | `/api/forge/redteam`, `SpecPanel.tsx` | `[x]` |
 | `PF-026` | Voice-to-Constraint API (`gemini-3.8-flash` + fallback) + Web Speech & 1-click presets | Pkg 3–6 | `/api/forge/voice-constraint`, `SpecPanel.tsx` | `[x]` |
 | `PF-027` | Full build freeze + `verify.sh` + live `smoke_e2e.py` + `jsdom` React UI mount test + judge docs | Pkg 4–7 | `apps/web/src/App.test.tsx`, `docs/PITCH-QUICK-CARD.md`, `README.md` | `[x]` |
-| `PF-028` | Rekam video cadangan 120 detik & submit ke portal Cerebral Valley | Human | Submission Hari-H NYC | `[ ]` |
+| `PF-028` | Rekam video cadangan 120 detik & submit ke portal Cerebral Valley | Human | Submission Hari-H NYC | `[x]` |
 | `PF-029` | Judging & Live 2-Minute Pitch di depan tim Google DeepMind | Human | Presentasi panggung NYC | `[ ]` |
 
 ### Phase 4 — Competition-Edge Packages (`pkg8`–`pkg11`, Verified on top of `41dbd0d`)

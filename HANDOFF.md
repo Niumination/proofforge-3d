@@ -12,5 +12,5 @@
 - `Esc`: Close open Diff / Certificate modals
 
 ## Remaining Human Actions
-- **PF-028:** Record 2-minute demo video & submit final portal form (`docs/SUBMISSION-PORTAL-KIT.md`).
+- **PF-028:** Record 2-minute demo video & submit final portal form (`docs/SUBMISSION-PORTAL-KIT.md`). — **Done** (user: "aku sudah rekam semuanya"; portal submission flow ditandai selesai).
 - **PF-029:** Rehearse 3-minute live pitch (`docs/PITCH-QUICK-CARD.md`).
