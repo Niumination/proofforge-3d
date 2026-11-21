@@ -19,7 +19,7 @@ describe("ProofForge stores", () => {
         counterexample_inputs: { payload_kg: 4.5 },
         violated_tick: 28,
         violated_time_sec: 2.8,
-        solver_duration_ms: 4.2,
+        solver_duration_ms: 4,
       },
       [
         { tick: 0, time_sec: 0, is_violation: false, entities: [], constraints_overlay: [] },
@@ -40,7 +40,7 @@ describe("ProofForge stores", () => {
         counterexample_inputs: null,
         violated_tick: null,
         violated_time_sec: null,
-        solver_duration_ms: 3.1,
+        solver_duration_ms: 3,
       },
       [{ tick: 0, time_sec: 0, is_violation: false, entities: [], constraints_overlay: [] }]
     );
@@ -49,7 +49,25 @@ describe("ProofForge stores", () => {
     expect(useForgeStore.getState().activeTick).toBe(0);
   });
 
-  it("logs audit events in auditStore", () => {
+  it("supports mode toggle, customSpec, certificate, and auditStore", () => {
+    const s = useForgeStore.getState();
+    s.setMode("live_gemini");
+    s.setCustomSpec("Keep drone separation >= 2.2m");
+    s.setCertificate({
+      certificate_id: "cert-123456",
+      issued_at_utc: "2026-11-21T15:00:00Z",
+      scenario_id: "drone_swarm",
+      verification_status: "UNSAT_PROVEN",
+      invariant_sha256: "abc",
+      impl_sha256: "def",
+      certificate_digest_sha256: "999",
+      hooks_enforced: ["pre_verify_invariant_guard"],
+      credential_exposed: false,
+    });
+    expect(useForgeStore.getState().mode).toBe("live_gemini");
+    expect(useForgeStore.getState().customSpec).toContain("2.2m");
+    expect(useForgeStore.getState().certificate?.certificate_id).toBe("cert-123456");
+
     useAuditStore.getState().clear();
     useAuditStore.getState().addEvent("HOOK_AUDIT", { action: "BLOCKED" });
     expect(useAuditStore.getState().events).toHaveLength(1);

@@ -1,4 +1,5 @@
-import { Lock, Play, ShieldAlert, UploadCloud } from "lucide-react";
+import { useState } from "react";
+import { Lock, Mic, Play, ShieldAlert, Skull, Sparkles, UploadCloud } from "lucide-react";
 import { useForgeStore } from "../store/forgeStore";
 import type { ScenarioId } from "../types/forge";
 
@@ -35,31 +36,106 @@ const SCENARIOS: Array<{
 interface Props {
   onRun: () => void;
   onExport: () => void;
+  onRedTeam: () => void;
+  onVoiceSubmit: (transcript: string) => void;
 }
 
-export function SpecPanel({ onRun, onExport }: Props) {
+export function SpecPanel({ onRun, onExport, onRedTeam, onVoiceSubmit }: Props) {
   const {
     selectedScenario,
+    mode,
+    customSpec,
+    voiceTranscript,
     injectInitialBug,
     enableAdversarialHookTest,
     status,
     afterResult,
     beforeResult,
+    redTeamBusy,
     setScenario,
+    setMode,
+    setCustomSpec,
+    setVoiceTranscript,
     setInjectInitialBug,
     setAdversarialHookTest,
   } = useForgeStore();
 
+  const [listening, setListening] = useState(false);
   const activeMeta = SCENARIOS.find((s) => s.id === selectedScenario) ?? SCENARIOS[0];
   const canExport = (afterResult ?? beforeResult)?.status === "UNSAT_PROVEN";
 
+  const handleMic = () => {
+    const w = window as unknown as {
+      SpeechRecognition?: new () => {
+        lang: string;
+        onresult: (e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void;
+        onend: () => void;
+        start: () => void;
+      };
+      webkitSpeechRecognition?: new () => {
+        lang: string;
+        onresult: (e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void;
+        onend: () => void;
+        start: () => void;
+      };
+    };
+    const Rec = w.SpeechRecognition ?? w.webkitSpeechRecognition;
+    if (!Rec) {
+      const sample = "Limit robot arm payload to 3.0 kg";
+      setVoiceTranscript(sample);
+      onVoiceSubmit(sample);
+      return;
+    }
+    const rec = new Rec();
+    rec.lang = "en-US";
+    setListening(true);
+    rec.onresult = (ev) => {
+      const text = ev.results[0]?.[0]?.transcript ?? "";
+      setVoiceTranscript(text);
+      if (text.trim()) onVoiceSubmit(text);
+    };
+    rec.onend = () => setListening(false);
+    rec.start();
+  };
+
   return (
-    <div className="flex flex-col gap-4 text-xs">
+    <div className="flex flex-col gap-3.5 text-xs">
       <div>
-        <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-2">
-          1. Select Verification Scenario
+        <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
+          Execution Engine
         </div>
-        <div className="space-y-2">
+        <div className="grid grid-cols-2 gap-1.5">
+          <button
+            type="button"
+            onClick={() => setMode("deterministic")}
+            className={`py-1.5 px-2 rounded-md border text-[11px] font-semibold cursor-pointer ${
+              mode === "deterministic"
+                ? "border-emerald-500/60 bg-emerald-950/40 text-emerald-300"
+                : "border-zinc-800 bg-zinc-900 text-zinc-400"
+            }`}
+          >
+            Local Z3 Core
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("live_gemini")}
+            className={`py-1.5 px-2 rounded-md border text-[11px] font-semibold flex items-center justify-center gap-1 cursor-pointer ${
+              mode === "live_gemini"
+                ? "border-cyan-500/60 bg-cyan-950/40 text-cyan-300"
+                : "border-zinc-800 bg-zinc-900 text-zinc-400"
+            }`}
+          >
+            <Sparkles className="w-3 h-3" />
+            Gemini 4 Argon
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
+          1. Verification Scenario
+        </div>
+        <div className="space-y-1.5">
           {SCENARIOS.map((sc) => {
             const active = sc.id === selectedScenario;
             return (
@@ -67,7 +143,7 @@ export function SpecPanel({ onRun, onExport }: Props) {
                 key={sc.id}
                 type="button"
                 onClick={() => setScenario(sc.id)}
-                className={`w-full text-left rounded-lg border p-2.5 transition ${
+                className={`w-full text-left rounded-lg border p-2 transition cursor-pointer ${
                   active
                     ? "border-cyan-500/60 bg-cyan-950/30 text-zinc-100"
                     : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700"
@@ -75,25 +151,63 @@ export function SpecPanel({ onRun, onExport }: Props) {
               >
                 <div className="font-bold text-xs">{sc.title}</div>
                 <div className="text-[10px] text-cyan-400 mt-0.5">{sc.domain}</div>
-                <div className="text-[11px] text-zinc-400 mt-1 leading-snug">{sc.desc}</div>
+                <div className="text-[11px] text-zinc-400 mt-0.5 leading-snug">{sc.desc}</div>
               </button>
             );
           })}
         </div>
       </div>
 
-      <div className="rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-3">
+      <div className="rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-2.5">
         <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 uppercase tracking-wider">
           <Lock className="w-3.5 h-3.5" />
           Locked Formal Invariant
         </div>
-        <div className="mono text-[11px] text-zinc-200 mt-1.5 break-words">{activeMeta.invariant}</div>
-        <div className="text-[10px] text-zinc-400 mt-1">
-          Guarded by SHA-256 Protected Hook (`invariants_locked.py`).
-        </div>
+        <div className="mono text-[11px] text-zinc-200 mt-1 break-words">{activeMeta.invariant}</div>
       </div>
 
-      <div className="space-y-2.5 border-t border-zinc-800 pt-3">
+      <div className="space-y-1.5">
+        <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+          Voice / Natural Constraint (`PF-026`)
+        </div>
+        <div className="flex gap-1.5">
+          <input
+            type="text"
+            value={voiceTranscript}
+            onChange={(e) => setVoiceTranscript(e.target.value)}
+            placeholder="e.g. Set drone separation to 2.2 m"
+            className="flex-1 rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1.5 text-[11px] text-zinc-200"
+          />
+          <button
+            type="button"
+            onClick={handleMic}
+            title="Speak constraint"
+            className={`px-2 py-1.5 rounded-md border cursor-pointer ${
+              listening
+                ? "border-red-500 bg-red-950/50 text-red-300"
+                : "border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
+            }`}
+          >
+            <Mic className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => voiceTranscript.trim() && onVoiceSubmit(voiceTranscript)}
+            className="px-2.5 py-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-[11px] font-semibold cursor-pointer"
+          >
+            Apply
+          </button>
+        </div>
+        <textarea
+          rows={2}
+          value={customSpec}
+          onChange={(e) => setCustomSpec(e.target.value)}
+          placeholder="Optional custom spec for Gemini 4 Argon co-generation..."
+          className="w-full rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1.5 text-[11px] text-zinc-300"
+        />
+      </div>
+
+      <div className="space-y-2 border-t border-zinc-800 pt-2.5">
         <label className="flex items-start gap-2 cursor-pointer">
           <input
             type="checkbox"
@@ -119,16 +233,13 @@ export function SpecPanel({ onRun, onExport }: Props) {
           <span className="flex-1">
             <span className="font-semibold text-amber-300 flex items-center gap-1">
               <ShieldAlert className="w-3.5 h-3.5" />
-              Simulate Reward-Hacking Attack
-            </span>
-            <span className="text-[11px] text-zinc-400">
-              Test Protected Hook blocking an attempt to relax Z3 safety bounds.
+              Enable Protected Hook Audit
             </span>
           </span>
         </label>
       </div>
 
-      <div className="space-y-2 pt-1">
+      <div className="space-y-2 pt-0.5">
         <button
           type="button"
           onClick={onRun}
@@ -137,6 +248,16 @@ export function SpecPanel({ onRun, onExport }: Props) {
         >
           <Play className="w-3.5 h-3.5" />
           {status === "running" ? "Verifying with Z3..." : "Run ProofForge Pipeline"}
+        </button>
+
+        <button
+          type="button"
+          onClick={onRedTeam}
+          disabled={redTeamBusy}
+          className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg border border-red-500/40 bg-red-950/30 hover:bg-red-950/50 text-red-300 font-semibold text-xs cursor-pointer"
+        >
+          <Skull className="w-3.5 h-3.5" />
+          {redTeamBusy ? "Simulating Attack..." : "Simulate Prompt Injection Attack"}
         </button>
 
         <button

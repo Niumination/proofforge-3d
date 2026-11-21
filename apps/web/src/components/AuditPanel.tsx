@@ -1,4 +1,4 @@
-import { FileCode2, ShieldCheck, ShieldX } from "lucide-react";
+import { Award, FileCode2, ShieldCheck, ShieldX } from "lucide-react";
 import { useForgeStore } from "../store/forgeStore";
 import type { AuditEvent, VerificationResult } from "../types/forge";
 
@@ -8,7 +8,8 @@ interface Props {
 }
 
 export function AuditPanel({ events, result }: Props) {
-  const { patchDiff, exportResponse, setDiffModalOpen } = useForgeStore();
+  const { patchDiff, certificate, exportResponse, setDiffModalOpen, setCertModalOpen } =
+    useForgeStore();
   const isProven = result?.status === "UNSAT_PROVEN";
 
   return (
@@ -50,16 +51,29 @@ export function AuditPanel({ events, result }: Props) {
         )}
       </div>
 
-      {patchDiff && (
-        <button
-          type="button"
-          onClick={() => setDiffModalOpen(true)}
-          className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg border border-cyan-500/40 bg-cyan-950/30 hover:bg-cyan-950/50 text-cyan-300 font-semibold cursor-pointer"
-        >
-          <FileCode2 className="w-3.5 h-3.5" />
-          Inspect Surgical Patch Diff
-        </button>
-      )}
+      <div className="grid grid-cols-1 gap-1.5">
+        {patchDiff && (
+          <button
+            type="button"
+            onClick={() => setDiffModalOpen(true)}
+            className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg border border-cyan-500/40 bg-cyan-950/30 hover:bg-cyan-950/50 text-cyan-300 font-semibold cursor-pointer"
+          >
+            <FileCode2 className="w-3.5 h-3.5" />
+            Inspect Surgical Patch Diff
+          </button>
+        )}
+
+        {certificate && (
+          <button
+            type="button"
+            onClick={() => setCertModalOpen(true)}
+            className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg border border-emerald-500/40 bg-emerald-950/30 hover:bg-emerald-950/50 text-emerald-300 font-semibold cursor-pointer"
+          >
+            <Award className="w-3.5 h-3.5" />
+            Inspect Signed Proof Certificate ({certificate.certificate_id})
+          </button>
+        )}
+      </div>
 
       {exportResponse && (
         <div className="rounded-lg border border-emerald-500/40 bg-emerald-950/20 p-3 space-y-1">

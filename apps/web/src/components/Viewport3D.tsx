@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { RotateCcw } from "lucide-react";
 import { useForgeStore } from "../store/forgeStore";
 import type { SceneTimelineFrame } from "../types/forge";
 
@@ -20,6 +21,8 @@ export function Viewport3D({ frames }: { frames: SceneTimelineFrame[] }) {
   const selectedScenario = useForgeStore((s) => s.selectedScenario);
   const activeTick = useForgeStore((s) => s.activeTick);
   const focusTrigger = useForgeStore((s) => s.focusTrigger);
+  const cameraResetTrigger = useForgeStore((s) => s.cameraResetTrigger);
+  const triggerCameraReset = useForgeStore((s) => s.triggerCameraReset);
 
   const safeTick = Math.min(activeTick, Math.max(frames.length - 1, 0));
   const activeFrame = frames[safeTick] ?? null;
@@ -89,7 +92,6 @@ export function Viewport3D({ frames }: { frames: SceneTimelineFrame[] }) {
     };
   }, []);
 
-  // Re-frame camera when scenario changes or focus violation is triggered
   useEffect(() => {
     const cam = cameraRef.current;
     const ctrl = controlsRef.current;
@@ -106,9 +108,8 @@ export function Viewport3D({ frames }: { frames: SceneTimelineFrame[] }) {
       ctrl.target.set(1.5, 1.2, 1.0);
     }
     ctrl.update();
-  }, [selectedScenario, focusTrigger]);
+  }, [selectedScenario, focusTrigger, cameraResetTrigger]);
 
-  // Render active frame entities + constraints_overlay
   useEffect(() => {
     const group = dynamicGroupRef.current;
     if (!group) return;
@@ -117,7 +118,6 @@ export function Viewport3D({ frames }: { frames: SceneTimelineFrame[] }) {
     if (!activeFrame) return;
 
     if (selectedScenario === "drone_swarm") {
-      // Draw path guidelines for drone trajectories
       if (frames.length > 1) {
         [0, 1].forEach((idx) => {
           const pts = frames
@@ -134,6 +134,19 @@ export function Viewport3D({ frames }: { frames: SceneTimelineFrame[] }) {
             group.add(new THREE.Line(lineGeo, lineMat));
           }
         });
+      }
+
+      if (activeFrame.entities.length >= 2) {
+        const pA = activeFrame.entities[0].position;
+        const pB = activeFrame.entities[1].position;
+        const sepGeo = new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(pA[0], pA[1], pA[2]),
+          new THREE.Vector3(pB[0], pB[1], pB[2]),
+        ]);
+        const sepMat = new THREE.LineBasicMaterial({
+          color: activeFrame.is_violation ? 0xef4444 : 0x22c55e,
+        });
+        group.add(new THREE.Line(sepGeo, sepMat));
       }
 
       activeFrame.entities.forEach((ent, i) => {
@@ -161,7 +174,6 @@ export function Viewport3D({ frames }: { frames: SceneTimelineFrame[] }) {
         group.add(drone);
       });
     } else if (selectedScenario === "robot_arm") {
-      // Table danger plane y = 0.15m
       const table = new THREE.Mesh(
         new THREE.BoxGeometry(2.0, 0.02, 1.2),
         new THREE.MeshStandardMaterial({ color: 0xef4444, transparent: true, opacity: 0.18 })
@@ -193,7 +205,6 @@ export function Viewport3D({ frames }: { frames: SceneTimelineFrame[] }) {
         group.add(mesh);
       });
     } else {
-      // 4x4x4 grid wireframe markers
       for (let x = 0; x < 4; x++) {
         for (let y = 0; y < 4; y++) {
           for (let z = 0; z < 4; z++) {
@@ -227,7 +238,6 @@ export function Viewport3D({ frames }: { frames: SceneTimelineFrame[] }) {
       });
     }
 
-    // Safety spheres / constraint overlays
     activeFrame.constraints_overlay.forEach((ov) => {
       const sphere = new THREE.Mesh(
         new THREE.SphereGeometry(ov.radius, 20, 14),
@@ -245,9 +255,40 @@ export function Viewport3D({ frames }: { frames: SceneTimelineFrame[] }) {
 
   const isViolated = activeFrame?.is_violation ?? false;
 
+  let telemetryLine = "Awaiting Z3 timeline...";
+  if (activeFrame) {
+    if (selectedScenario === "drone_swarm" && activeFrame.entities.length >= 2) {
+      const a = activeFrame.entities[0].position;
+      const b = activeFrame.entities[1].position;
+      const d = Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+      telemetryLine = `sep = ${d.toFixed(2)}m (min 1.50m)`;
+    } else if (selectedScenario === "robot_arm") {
+      const eff = activeFrame.entities[2];
+      const tau = eff?.meta?.tau2_nm ?? "-";
+      telemetryLine = `tau2 = ${String(tau)} N·m · y = ${eff?.position[1]?.toFixed(2) ?? "-"}m`;
+    } else {
+      const locks = activeFrame.entities.filter((e) => e.status === "DEADLOCK").length;
+      telemetryLine = `deadlocked_workers = ${locks}`;
+    }
+  }
+
   return (
     <div className="relative w-full h-full">
       <div ref={containerRef} className="absolute inset-0" />
+      <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
+        <div className="mono px-2.5 py-1 rounded-md bg-zinc-950/85 border border-zinc-800 text-[11px] text-zinc-200">
+          {telemetryLine}
+        </div>
+        <button
+          type="button"
+          onClick={triggerCameraReset}
+          title="Reset 3D Camera"
+          className="p-1.5 rounded-md bg-zinc-950/85 border border-zinc-800 hover:bg-zinc-800 text-zinc-300 cursor-pointer"
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
       {isViolated && (
         <>
           <div

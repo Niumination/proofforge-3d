@@ -1,9 +1,17 @@
-import type { ForgeRunRequest, ProofExportResponse, ScenarioId, VerificationResult } from "../types/forge";
+import type {
+  ForgeRunRequest,
+  ProofCertificate,
+  ProofExportResponse,
+  RedTeamResponse,
+  ScenarioId,
+  VerificationResult,
+  VoiceConstraintResponse,
+} from "../types/forge";
 
 export class ApiClient {
   private baseUrl = "/api";
 
-  async health(): Promise<{ status: string; mode: string }> {
+  async health(): Promise<{ status: string; mode: string; static_ui_ready?: boolean }> {
     const res = await fetch(`${this.baseUrl}/health`);
     if (!res.ok) throw new Error(`GET /api/health failed: ${res.status}`);
     return res.json();
@@ -26,6 +34,35 @@ export class ApiClient {
       body: JSON.stringify({ scenario_id: scenarioId, result }),
     });
     if (!res.ok) throw new Error(`POST /api/forge/export failed: ${res.status}`);
+    return res.json();
+  }
+
+  async runRedTeam(scenarioId: ScenarioId): Promise<RedTeamResponse> {
+    const res = await fetch(`${this.baseUrl}/forge/redteam`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ scenario_id: scenarioId }),
+    });
+    if (!res.ok) throw new Error(`POST /api/forge/redteam failed: ${res.status}`);
+    return res.json();
+  }
+
+  async parseVoiceConstraint(
+    transcript: string,
+    scenarioId: ScenarioId
+  ): Promise<VoiceConstraintResponse> {
+    const res = await fetch(`${this.baseUrl}/forge/voice-constraint`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ transcript, scenario_id: scenarioId }),
+    });
+    if (!res.ok) throw new Error(`POST /api/forge/voice-constraint failed: ${res.status}`);
+    return res.json();
+  }
+
+  async fetchCertificate(certId: string): Promise<ProofCertificate> {
+    const res = await fetch(`${this.baseUrl}/forge/certificate/${encodeURIComponent(certId)}`);
+    if (!res.ok) throw new Error(`GET /api/forge/certificate failed: ${res.status}`);
     return res.json();
   }
 }

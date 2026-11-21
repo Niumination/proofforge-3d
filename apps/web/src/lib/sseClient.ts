@@ -10,6 +10,7 @@ const NAMED_EVENTS = [
   "PROXY_AUDIT",
   "VERIFICATION_RESULT",
   "PATCH_DIFF",
+  "PROOF_CERTIFICATE",
   "ERROR",
 ] as const;
 

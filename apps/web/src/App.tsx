@@ -8,11 +8,14 @@ import { Viewport3D } from "./components/Viewport3D";
 import { TimeScrubber } from "./components/TimeScrubber";
 import { AuditPanel } from "./components/AuditPanel";
 import { PatchDiffModal } from "./components/PatchDiffModal";
-import type { SceneTimelineFrame, VerificationResult } from "./types/forge";
+import { ProofCertModal } from "./components/ProofCertModal";
+import type { ProofCertificate, SceneTimelineFrame, VerificationResult } from "./types/forge";
 
 export default function App() {
   const {
     selectedScenario,
+    mode,
+    customSpec,
     injectInitialBug,
     enableAdversarialHookTest,
     stage,
@@ -26,7 +29,11 @@ export default function App() {
     setStage,
     applyVerification,
     setPatchDiff,
+    setCertificate,
     setExportResponse,
+    setScenario,
+    setCustomSpec,
+    setRedTeamBusy,
     setError,
   } = useForgeStore();
 
@@ -46,7 +53,8 @@ export default function App() {
 
     const req = {
       scenario_id: selectedScenario,
-      mode: "deterministic" as const,
+      mode,
+      custom_spec: customSpec.trim() ? customSpec : undefined,
       inject_initial_bug: injectInitialBug,
       max_iterations: 5,
       enable_adversarial_hook_test: enableAdversarialHookTest,
@@ -63,6 +71,8 @@ export default function App() {
           setStage(String(ev.data.stage ?? "VERIFY"));
         } else if (ev.event === "PATCH_DIFF") {
           setPatchDiff(String(ev.data.diff ?? ""));
+        } else if (ev.event === "PROOF_CERTIFICATE") {
+          setCertificate(ev.data as unknown as ProofCertificate);
         } else if (ev.event === "VERIFICATION_RESULT") {
           const phase = ev.data.phase === "before" ? "before" : "after";
           const result = ev.data.result as VerificationResult;
@@ -74,6 +84,38 @@ export default function App() {
       if (!controller.signal.aborted) {
         setError(err instanceof Error ? err.message : "Run failed");
       }
+    }
+  };
+
+  const onRedTeam = async () => {
+    setRedTeamBusy(true);
+    try {
+      const res = await apiClient.runRedTeam(selectedScenario);
+      for (const ev of res.hook_events) {
+        addEvent("HOOK_AUDIT", ev);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Red-team test failed");
+    } finally {
+      setRedTeamBusy(false);
+    }
+  };
+
+  const onVoiceSubmit = async (transcript: string) => {
+    try {
+      const parsed = await apiClient.parseVoiceConstraint(transcript, selectedScenario);
+      if (parsed.scenario_id !== selectedScenario) {
+        setScenario(parsed.scenario_id);
+      }
+      setCustomSpec(parsed.custom_spec_patch);
+      addEvent("AGENT_LOG", {
+        source: parsed.source,
+        summary: parsed.summary,
+        parameter: parsed.parameter,
+        value: parsed.value,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Voice constraint parse failed");
     }
   };
 
@@ -103,8 +145,12 @@ export default function App() {
           <span className="mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
             stage: {stage}
           </span>
-          <span className="mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-emerald-400">
-            mode: deterministic
+          <span
+            className={`mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 ${
+              mode === "live_gemini" ? "text-cyan-400" : "text-emerald-400"
+            }`}
+          >
+            mode: {mode}
           </span>
         </div>
       </header>
@@ -117,7 +163,12 @@ export default function App() {
 
       <div className="flex-1 flex min-h-0">
         <aside className="w-80 shrink-0 border-r border-zinc-800 p-3 overflow-y-auto bg-zinc-950/70">
-          <SpecPanel onRun={onRun} onExport={onExport} />
+          <SpecPanel
+            onRun={onRun}
+            onExport={onExport}
+            onRedTeam={onRedTeam}
+            onVoiceSubmit={onVoiceSubmit}
+          />
         </aside>
 
         <main className="flex-1 relative min-w-0">
@@ -134,6 +185,7 @@ export default function App() {
       </footer>
 
       <PatchDiffModal />
+      <ProofCertModal />
     </div>
   );
 }

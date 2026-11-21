@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type {
   ForgeRunRequest,
+  ProofCertificate,
   ProofExportResponse,
   ScenarioId,
   SceneTimelineFrame,
@@ -9,6 +10,9 @@ import type {
 
 export interface ForgeState {
   selectedScenario: ScenarioId;
+  mode: "deterministic" | "live_gemini";
+  customSpec: string;
+  voiceTranscript: string;
   injectInitialBug: boolean;
   enableAdversarialHookTest: boolean;
   status: "idle" | "running" | "complete" | "error";
@@ -22,12 +26,19 @@ export interface ForgeState {
   playing: boolean;
   speed: number;
   focusTrigger: number;
+  cameraResetTrigger: number;
   patchDiff: string;
   diffModalOpen: boolean;
+  certModalOpen: boolean;
+  certificate: ProofCertificate | null;
   exportResponse: ProofExportResponse | null;
+  redTeamBusy: boolean;
   errorMessage: string | null;
 
   setScenario: (id: ScenarioId) => void;
+  setMode: (mode: "deterministic" | "live_gemini") => void;
+  setCustomSpec: (spec: string) => void;
+  setVoiceTranscript: (text: string) => void;
   setInjectInitialBug: (v: boolean) => void;
   setAdversarialHookTest: (v: boolean) => void;
   startRun: (req: ForgeRunRequest) => void;
@@ -43,14 +54,21 @@ export interface ForgeState {
   setPlaying: (playing: boolean) => void;
   setSpeed: (speed: number) => void;
   triggerFocusViolation: () => void;
+  triggerCameraReset: () => void;
   setDiffModalOpen: (open: boolean) => void;
+  setCertModalOpen: (open: boolean) => void;
+  setCertificate: (cert: ProofCertificate | null) => void;
   setExportResponse: (res: ProofExportResponse | null) => void;
+  setRedTeamBusy: (busy: boolean) => void;
   setError: (msg: string) => void;
   reset: () => void;
 }
 
 export const useForgeStore = create<ForgeState>((set, get) => ({
   selectedScenario: "drone_swarm",
+  mode: "deterministic",
+  customSpec: "",
+  voiceTranscript: "",
   injectInitialBug: true,
   enableAdversarialHookTest: true,
   status: "idle",
@@ -64,9 +82,13 @@ export const useForgeStore = create<ForgeState>((set, get) => ({
   playing: false,
   speed: 1,
   focusTrigger: 0,
+  cameraResetTrigger: 0,
   patchDiff: "",
   diffModalOpen: false,
+  certModalOpen: false,
+  certificate: null,
   exportResponse: null,
+  redTeamBusy: false,
   errorMessage: null,
 
   setScenario: (selectedScenario) =>
@@ -79,10 +101,14 @@ export const useForgeStore = create<ForgeState>((set, get) => ({
       activeTick: 0,
       playing: false,
       patchDiff: "",
+      certificate: null,
       exportResponse: null,
       status: "idle",
       stage: "IDLE",
     }),
+  setMode: (mode) => set({ mode }),
+  setCustomSpec: (customSpec) => set({ customSpec }),
+  setVoiceTranscript: (voiceTranscript) => set({ voiceTranscript }),
   setInjectInitialBug: (injectInitialBug) => set({ injectInitialBug }),
   setAdversarialHookTest: (enableAdversarialHookTest) => set({ enableAdversarialHookTest }),
   startRun: (req) =>
@@ -97,6 +123,7 @@ export const useForgeStore = create<ForgeState>((set, get) => ({
       activeTick: 0,
       playing: false,
       patchDiff: "",
+      certificate: null,
       exportResponse: null,
       errorMessage: null,
     }),
@@ -148,8 +175,12 @@ export const useForgeStore = create<ForgeState>((set, get) => ({
       focusTrigger: s.focusTrigger + 1,
     });
   },
+  triggerCameraReset: () => set((s) => ({ cameraResetTrigger: s.cameraResetTrigger + 1 })),
   setDiffModalOpen: (diffModalOpen) => set({ diffModalOpen }),
+  setCertModalOpen: (certModalOpen) => set({ certModalOpen }),
+  setCertificate: (certificate) => set({ certificate }),
   setExportResponse: (exportResponse) => set({ exportResponse }),
+  setRedTeamBusy: (redTeamBusy) => set({ redTeamBusy }),
   setError: (errorMessage) => set({ status: "error", errorMessage }),
   reset: () =>
     set({
@@ -162,6 +193,7 @@ export const useForgeStore = create<ForgeState>((set, get) => ({
       activeTick: 0,
       playing: false,
       patchDiff: "",
+      certificate: null,
       exportResponse: null,
       errorMessage: null,
     }),
