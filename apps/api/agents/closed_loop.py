@@ -18,6 +18,7 @@ from apps.api.security.protected_hooks import (
 )
 from apps.api.verifier.dynamic_runner import execute_bundle
 from apps.api.verifier.invariant_guard import compute_invariant_hash
+from apps.api.verifier.z3_runner import parse_constraint_overrides
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
@@ -110,11 +111,13 @@ class ClosedLoopOrchestrator:
                 }
             )
 
+        overrides = parse_constraint_overrides(custom_spec)
         sim = DeterministicSim()
         out = sim.run_pipeline(
             scenario_id=scenario_id,
             inject_initial_bug=inject_initial_bug,
             enable_adversarial_hook_test=enable_adversarial_hook_test,
+            overrides=overrides,
         )
         out["hook_events"] = hook_events + out["hook_events"]
         out["agent_logs"] = agent_logs + [

@@ -15,7 +15,7 @@ from scenarios.robot_arm.invariants_locked import (
 )
 
 
-def run_z3_check(timeout_ms: int = 8000) -> dict:
+def run_z3_check(timeout_ms: int = 8000, payload_override: float | None = None) -> dict:
     start = time.perf_counter()
     s = Solver()
     s.set("timeout", timeout_ms)
@@ -24,7 +24,8 @@ def run_z3_check(timeout_ms: int = 8000) -> dict:
     t1_nom, t2_nom, t3_nom = 0.62, -0.35, 0.08
     l2_eff = L2 + L3
     cos_t2 = max(abs(math.cos(t2_nom)), 0.1)
-    safe_payload_max = round((TAU_MAX - 1.0) / (G * l2_eff * cos_t2), 4)
+    base_max = round((TAU_MAX - 1.0) / (G * l2_eff * cos_t2), 4)
+    safe_payload_max = min(base_max, payload_override) if payload_override is not None else base_max
 
     d1, d2, d3 = Real("delta1"), Real("delta2"), Real("delta3")
     m_payload = Real("m_payload")

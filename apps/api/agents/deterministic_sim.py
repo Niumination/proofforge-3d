@@ -1,4 +1,4 @@
-"""Deterministic verification orchestrator — Phase 1 (real Z3 + real SHA-256 guard)."""
+"""Deterministic verification orchestrator — real Z3 + SHA-256 guard + parametric overrides."""
 
 import difflib
 from pathlib import Path
@@ -18,6 +18,7 @@ class DeterministicSim(AgentRunnerInterface):
         scenario_id: str,
         inject_initial_bug: bool,
         enable_adversarial_hook_test: bool,
+        overrides: dict[str, float] | None = None,
     ) -> dict[str, Any]:
         scenario_dir = REPO_ROOT / "scenarios" / scenario_id
         inv_path = scenario_dir / "invariants_locked.py"
@@ -41,8 +42,8 @@ class DeterministicSim(AgentRunnerInterface):
         iterations: list[dict[str, Any]] = []
 
         if inject_initial_bug:
-            z3_bug = run_z3(scenario_id, fixed=False)
-            frames_bug = export_frames(scenario_id, fixed=False)
+            z3_bug = run_z3(scenario_id, fixed=False, overrides=overrides)
+            frames_bug = export_frames(scenario_id, fixed=False, overrides=overrides)
             iterations.append(
                 {
                     "result": {
@@ -61,8 +62,8 @@ class DeterministicSim(AgentRunnerInterface):
                 }
             )
 
-        z3_fix = run_z3(scenario_id, fixed=True)
-        frames_fix = export_frames(scenario_id, fixed=True)
+        z3_fix = run_z3(scenario_id, fixed=True, overrides=overrides)
+        frames_fix = export_frames(scenario_id, fixed=True, overrides=overrides)
         iterations.append(
             {
                 "result": {

@@ -4,14 +4,14 @@ import time
 
 from z3 import If, Real, RealVal, Solver, unsat
 
-from scenarios.drone_swarm.invariants_locked import R_SAFE, z3_safety_condition
+from scenarios.drone_swarm.invariants_locked import R_SAFE
 
 T0 = 4.2
 A_MAX = 3.0
 LAT_OFFSET = 0.38
 
 
-def run_z3_check(timeout_ms: int = 8000) -> dict:
+def run_z3_check(timeout_ms: int = 8000, r_safe_override: float | None = None) -> dict:
     start = time.perf_counter()
     s = Solver()
     s.set("timeout", timeout_ms)
@@ -28,13 +28,13 @@ def run_z3_check(timeout_ms: int = 8000) -> dict:
     init_gap = (v_a + v_b) * RealVal(str(T0))
     # Fixed controller triggers full braking when gap <= required_gap
     stopping_dist = (v_a + v_b) * latency + (v_a * v_a + v_b * v_b) / RealVal(str(2.0 * A_MAX))
-    required_gap = RealVal(str(R_SAFE)) + stopping_dist
+    required_gap = RealVal(str(r_safe_override if r_safe_override is not None else R_SAFE)) + stopping_dist
 
     # After full stop (reachable since init_gap > required_gap on full domain),
     # remaining longitudinal gap is >= If(init_gap >= required_gap, R_SAFE, init_gap - stopping_dist)
     final_longitudinal_gap = If(
         init_gap >= required_gap,
-        RealVal(str(R_SAFE)),
+        RealVal(str(r_safe_override if r_safe_override is not None else R_SAFE)),
         init_gap - stopping_dist,
     )
 
@@ -44,7 +44,7 @@ def run_z3_check(timeout_ms: int = 8000) -> dict:
     y_b = final_longitudinal_gap
 
     # Assert negation of locked invariant: ask Z3 if ANY violation exists in domain
-    s.add(z3_safety_condition(x_a, y_a, x_b, y_b) == False)
+    s.add((x_a - x_b) ** 2 + (y_a - y_b) ** 2 < RealVal(str(r_safe_override if r_safe_override is not None else R_SAFE)) ** 2)
 
     res = s.check()
     elapsed = max(1, int((time.perf_counter() - start) * 1000))

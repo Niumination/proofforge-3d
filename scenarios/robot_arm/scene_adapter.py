@@ -8,9 +8,10 @@ N_TICKS = 41
 DT = 0.1
 
 
-def build_timeline(fixed: bool, m_payload: float = 4.5) -> list[dict]:
+def build_timeline(fixed: bool, m_payload: float = 4.5, payload_override: float | None = None) -> list[dict]:
     frames: list[dict] = []
-    payload = min(m_payload, 1.7) if fixed else m_payload
+    effective_m = payload_override if payload_override is not None else m_payload
+    payload = min(effective_m, 1.7) if fixed else effective_m
     for k in range(N_TICKS):
         p = k / (N_TICKS - 1)
         if not fixed:

@@ -21,7 +21,7 @@ def _to_float(val) -> float:
     return round(num / den, 4)
 
 
-def run_z3_check(timeout_ms: int = 8000) -> dict:
+def run_z3_check(timeout_ms: int = 8000, r_safe_override: float | None = None) -> dict:
     start = time.perf_counter()
     s = Solver()
     s.set("timeout", timeout_ms)
@@ -51,7 +51,7 @@ def run_z3_check(timeout_ms: int = 8000) -> dict:
         y_a = v_a * (t - t0)
         y_b = v_b * (t0 - t)
         # Buggy check fails to brake before crossing when naive threshold <= 0.40m
-        naive_threshold = RealVal(str(R_SAFE)) - (v_a + v_b) * latency
+        naive_threshold = RealVal(str(r_safe_override if r_safe_override is not None else R_SAFE)) - (v_a + v_b) * latency
         naive_missed_brake = naive_threshold < RealVal("0.40")
         violation_clauses.append(And(naive_missed_brake, z3_safety_condition(x_a, y_a, x_b, y_b) == False))
 

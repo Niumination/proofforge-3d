@@ -16,8 +16,10 @@ def build_timeline(
     v_a: float = 14.4,
     v_b: float = 13.9,
     latency: float = 0.25,
+    r_safe_override: float | None = None,
 ) -> list[dict]:
-    required_gap = R_SAFE + (v_a + v_b) * latency + (v_a**2 + v_b**2) / (2.0 * A_MAX)
+    r_safe = r_safe_override if r_safe_override is not None else R_SAFE
+    required_gap = r_safe + (v_a + v_b) * latency + (v_a**2 + v_b**2) / (2.0 * A_MAX)
     init_gap = (v_a + v_b) * T0
     trig_time = max(0.0, (init_gap - required_gap) / (v_a + v_b))
 
@@ -44,7 +46,7 @@ def build_timeline(
         z_a = -v_a * T0 + s_a
         z_b = v_b * T0 - s_b
         dist = math.hypot(LAT_OFFSET - 0.0, z_b - z_a)
-        violated = dist < R_SAFE
+        violated = dist < r_safe
         frames.append(
             {
                 "tick": k,
@@ -72,13 +74,13 @@ def build_timeline(
                     {
                         "type": "safety_sphere",
                         "center": [0.0, 0.8, round(z_a, 3)],
-                        "radius": R_SAFE,
+                        "radius": round(r_safe, 3),
                         "breached": violated,
                     },
                     {
                         "type": "safety_sphere",
                         "center": [LAT_OFFSET, 0.8, round(z_b, 3)],
-                        "radius": R_SAFE,
+                        "radius": round(r_safe, 3),
                         "breached": violated,
                     },
                 ],

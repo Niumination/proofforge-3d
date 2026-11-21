@@ -19,7 +19,7 @@ def _to_float(val) -> float:
     return round(float(val.numerator_as_long()) / float(val.denominator_as_long()), 4)
 
 
-def run_z3_check(timeout_ms: int = 8000) -> dict:
+def run_z3_check(timeout_ms: int = 8000, payload_override: float | None = None) -> dict:
     start = time.perf_counter()
     s = Solver()
     s.set("timeout", timeout_ms)
@@ -53,7 +53,8 @@ def run_z3_check(timeout_ms: int = 8000) -> dict:
 
     # Check calibrated counterexample first (m_payload = 4.5 kg)
     s.push()
-    s.add(m_payload == RealVal("4.5"), d1 == 0, d2 == 0, d3 == 0)
+    target_payload = payload_override if payload_override is not None else 4.5
+    s.add(m_payload == RealVal(str(target_payload)), d1 == 0, d2 == 0, d3 == 0)
     if s.check() == sat:
         m = s.model()
         tau_val = _to_float(m.eval(tau2, model_completion=True))
@@ -64,7 +65,7 @@ def run_z3_check(timeout_ms: int = 8000) -> dict:
             "counterexample_inputs": {
                 "target_x": 0.70,
                 "target_y": 0.20,
-                "m_payload_kg": 4.5,
+                "m_payload_kg": target_payload,
                 "tau2_nm": tau_val,
             },
             "violated_tick": 28,
