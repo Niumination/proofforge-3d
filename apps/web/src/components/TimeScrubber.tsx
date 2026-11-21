@@ -99,6 +99,17 @@ export function TimeScrubber({ frames }: { frames: SceneTimelineFrame[] }) {
         )}
 
         <div className="ml-auto flex items-center gap-3">
+          {frames.length > 0 && (
+            <span
+              className={`mono text-[10px] px-2 py-0.5 rounded border ${
+                violationIndices.length > 0
+                  ? "border-red-500/40 bg-red-950/30 text-red-300"
+                  : "border-emerald-500/40 bg-emerald-950/30 text-emerald-300"
+              }`}
+            >
+              {violationIndices.length} breach ticks
+            </span>
+          )}
           <span className="mono text-zinc-400">
             tick {String(safeTick).padStart(3, "0")} · t {(activeFrame?.time_sec ?? 0).toFixed(1)}s
           </span>

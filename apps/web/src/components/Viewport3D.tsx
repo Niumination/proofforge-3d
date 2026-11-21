@@ -12,6 +12,30 @@ function clearGroup(group: THREE.Group) {
   }
 }
 
+function addCylinderLink(
+  group: THREE.Group,
+  a: THREE.Vector3,
+  b: THREE.Vector3,
+  radius: number,
+  color: number
+) {
+  const dir = new THREE.Vector3().subVectors(b, a);
+  const len = dir.length();
+  if (len < 1e-4) return;
+  const geom = new THREE.CylinderGeometry(radius, radius, len, 14);
+  const mat = new THREE.MeshStandardMaterial({
+    color,
+    emissive: color,
+    emissiveIntensity: 0.25,
+    roughness: 0.35,
+    metalness: 0.45,
+  });
+  const mesh = new THREE.Mesh(geom, mat);
+  mesh.position.copy(a).add(b).multiplyScalar(0.5);
+  mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize());
+  group.add(mesh);
+}
+
 export function Viewport3D({ frames }: { frames: SceneTimelineFrame[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const dynamicGroupRef = useRef<THREE.Group | null>(null);
@@ -54,8 +78,8 @@ export function Viewport3D({ frames }: { frames: SceneTimelineFrame[] }) {
     controlsRef.current = controls;
 
     scene.add(new THREE.GridHelper(160, 40, 0x27272a, 0x18181b));
-    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
-    const dir = new THREE.DirectionalLight(0xffffff, 1.0);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const dir = new THREE.DirectionalLight(0xffffff, 1.05);
     dir.position.set(8, 16, 10);
     scene.add(dir);
 
@@ -129,7 +153,7 @@ export function Viewport3D({ frames }: { frames: SceneTimelineFrame[] }) {
             const lineMat = new THREE.LineBasicMaterial({
               color: idx === 0 ? 0x22d3ee : 0xf59e0b,
               transparent: true,
-              opacity: 0.35,
+              opacity: 0.4,
             });
             group.add(new THREE.Line(lineGeo, lineMat));
           }
@@ -139,14 +163,29 @@ export function Viewport3D({ frames }: { frames: SceneTimelineFrame[] }) {
       if (activeFrame.entities.length >= 2) {
         const pA = activeFrame.entities[0].position;
         const pB = activeFrame.entities[1].position;
-        const sepGeo = new THREE.BufferGeometry().setFromPoints([
-          new THREE.Vector3(pA[0], pA[1], pA[2]),
-          new THREE.Vector3(pB[0], pB[1], pB[2]),
-        ]);
+        const vA = new THREE.Vector3(pA[0], pA[1], pA[2]);
+        const vB = new THREE.Vector3(pB[0], pB[1], pB[2]);
+        const sepGeo = new THREE.BufferGeometry().setFromPoints([vA, vB]);
         const sepMat = new THREE.LineBasicMaterial({
           color: activeFrame.is_violation ? 0xef4444 : 0x22c55e,
         });
         group.add(new THREE.Line(sepGeo, sepMat));
+
+        if (activeFrame.is_violation) {
+          const mid = vA.clone().add(vB).multiplyScalar(0.5);
+          const shock = new THREE.Mesh(
+            new THREE.RingGeometry(0.45, 0.65, 28),
+            new THREE.MeshBasicMaterial({
+              color: 0xef4444,
+              side: THREE.DoubleSide,
+              transparent: true,
+              opacity: 0.78,
+            })
+          );
+          shock.rotation.x = -Math.PI / 2;
+          shock.position.copy(mid);
+          group.add(shock);
+        }
       }
 
       activeFrame.entities.forEach((ent, i) => {
@@ -165,18 +204,34 @@ export function Viewport3D({ frames }: { frames: SceneTimelineFrame[] }) {
         ].forEach(([dx, dz]) => {
           const rotor = new THREE.Mesh(
             new THREE.CylinderGeometry(0.16, 0.16, 0.02, 14),
-            new THREE.MeshStandardMaterial({ color: 0xe4e4e7, transparent: true, opacity: 0.7 })
+            new THREE.MeshStandardMaterial({ color: 0xe4e4e7, transparent: true, opacity: 0.75 })
           );
           rotor.position.set(dx, 0.1, dz);
           drone.add(rotor);
         });
         drone.position.set(ent.position[0], ent.position[1], ent.position[2]);
         group.add(drone);
+
+        if (ent.velocity) {
+          const vel = new THREE.Vector3(ent.velocity[0], ent.velocity[1], ent.velocity[2]);
+          const speed = vel.length();
+          if (speed > 0.05) {
+            const arrow = new THREE.ArrowHelper(
+              vel.clone().normalize(),
+              new THREE.Vector3(ent.position[0], ent.position[1] + 0.16, ent.position[2]),
+              Math.min(Math.max(speed * 0.14, 0.45), 2.4),
+              col,
+              0.24,
+              0.14
+            );
+            group.add(arrow);
+          }
+        }
       });
     } else if (selectedScenario === "robot_arm") {
       const table = new THREE.Mesh(
         new THREE.BoxGeometry(2.0, 0.02, 1.2),
-        new THREE.MeshStandardMaterial({ color: 0xef4444, transparent: true, opacity: 0.18 })
+        new THREE.MeshStandardMaterial({ color: 0xef4444, transparent: true, opacity: 0.2 })
       );
       table.position.set(0.3, 0.14, 0);
       group.add(table);
@@ -186,15 +241,14 @@ export function Viewport3D({ frames }: { frames: SceneTimelineFrame[] }) {
         const p2 = activeFrame.entities[2].meta.prev as number[];
         pts.splice(2, 0, new THREE.Vector3(p2[0], p2[1], p2[2]));
       }
-      if (pts.length >= 2) {
-        const linkGeo = new THREE.BufferGeometry().setFromPoints(pts);
-        const linkMat = new THREE.LineBasicMaterial({ color: 0x22d3ee });
-        group.add(new THREE.Line(linkGeo, linkMat));
+      const anyBreach = activeFrame.entities.some((e) => e.status === "TORQUE_BREACH");
+      for (let i = 0; i < pts.length - 1; i++) {
+        addCylinderLink(group, pts[i], pts[i + 1], 0.024, anyBreach ? 0xf87171 : 0x22d3ee);
       }
       activeFrame.entities.forEach((ent) => {
         const isBreach = ent.status === "TORQUE_BREACH";
         const mesh = new THREE.Mesh(
-          new THREE.SphereGeometry(ent.kind === "arm_effector" ? 0.045 : 0.055, 16, 16),
+          new THREE.SphereGeometry(ent.kind === "arm_effector" ? 0.048 : 0.058, 16, 16),
           new THREE.MeshStandardMaterial({
             color: isBreach ? 0xef4444 : 0x22d3ee,
             emissive: isBreach ? 0xef4444 : 0x0891b2,
@@ -203,6 +257,15 @@ export function Viewport3D({ frames }: { frames: SceneTimelineFrame[] }) {
         );
         mesh.position.set(ent.position[0], ent.position[1], ent.position[2]);
         group.add(mesh);
+
+        if (isBreach) {
+          const halo = new THREE.Mesh(
+            new THREE.TorusGeometry(0.11, 0.012, 10, 24),
+            new THREE.MeshBasicMaterial({ color: 0xef4444 })
+          );
+          halo.position.set(ent.position[0], ent.position[1], ent.position[2]);
+          group.add(halo);
+        }
       });
     } else {
       for (let x = 0; x < 4; x++) {
@@ -223,8 +286,13 @@ export function Viewport3D({ frames }: { frames: SceneTimelineFrame[] }) {
         }
       }
       const colors = [0x22d3ee, 0xf59e0b, 0xa855f7, 0x3b82f6];
+      const deadlockedPositions: THREE.Vector3[] = [];
       activeFrame.entities.forEach((ent, i) => {
         const deadlocked = ent.status === "DEADLOCK";
+        const pos = new THREE.Vector3(ent.position[0], ent.position[1], ent.position[2]);
+        if (deadlocked) {
+          deadlockedPositions.push(pos);
+        }
         const cube = new THREE.Mesh(
           new THREE.BoxGeometry(0.6, 0.6, 0.6),
           new THREE.MeshStandardMaterial({
@@ -233,9 +301,23 @@ export function Viewport3D({ frames }: { frames: SceneTimelineFrame[] }) {
             emissiveIntensity: deadlocked ? 0.6 : 0.25,
           })
         );
-        cube.position.set(ent.position[0], ent.position[1], ent.position[2]);
+        cube.position.copy(pos);
         group.add(cube);
       });
+
+      if (deadlockedPositions.length >= 2) {
+        for (let i = 0; i < deadlockedPositions.length; i++) {
+          const from = deadlockedPositions[i];
+          const to = deadlockedPositions[(i + 1) % deadlockedPositions.length];
+          const dir = new THREE.Vector3().subVectors(to, from);
+          const dist = dir.length();
+          if (dist > 0.1) {
+            group.add(
+              new THREE.ArrowHelper(dir.normalize(), from, dist * 0.78, 0xef4444, 0.26, 0.16)
+            );
+          }
+        }
+      }
     }
 
     activeFrame.constraints_overlay.forEach((ov) => {
@@ -261,7 +343,8 @@ export function Viewport3D({ frames }: { frames: SceneTimelineFrame[] }) {
       const a = activeFrame.entities[0].position;
       const b = activeFrame.entities[1].position;
       const d = Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
-      telemetryLine = `sep = ${d.toFixed(2)}m (min 1.50m)`;
+      const rSafe = activeFrame.constraints_overlay[0]?.radius ?? 1.5;
+      telemetryLine = `sep = ${d.toFixed(2)}m (min ${rSafe.toFixed(2)}m)`;
     } else if (selectedScenario === "robot_arm") {
       const eff = activeFrame.entities[2];
       const tau = eff?.meta?.tau2_nm ?? "-";
@@ -287,6 +370,10 @@ export function Viewport3D({ frames }: { frames: SceneTimelineFrame[] }) {
         >
           <RotateCcw className="w-3.5 h-3.5" />
         </button>
+      </div>
+
+      <div className="absolute bottom-3 left-3 z-20 pointer-events-none mono px-2.5 py-1 rounded-md bg-zinc-950/80 border border-zinc-800 text-[10px] text-zinc-400">
+        <span className="text-emerald-400">● SAFE</span> · <span className="text-red-400">● SAT VIOLATION</span> · Drag/Scroll to orbit
       </div>
 
       {isViolated && (
